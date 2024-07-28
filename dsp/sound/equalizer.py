@@ -113,7 +113,8 @@ def plot_waveform(frame, file_path):
         
     else:
         # create the barchart
-        axes.plot([0, 100], [-3, 3])
+        axes.axhline(y=10, color='blue', linestyle='-')
+        #axes.plot([0, 100], [-3, 3])
 
     # Remove axis labels
     axes.set_xticks([])
