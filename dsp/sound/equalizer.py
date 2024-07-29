@@ -1,5 +1,11 @@
 """
 Tutorial de uso do Tkinter:    https://www.pythontutorial.net/tkinter/
+
+Required libraries:
+- matplotlib
+- numpy
+- pydub
+- pyaudio
 """
 
 import tkinter as tk
@@ -9,7 +15,6 @@ from tkinter import font
 from tkinter import filedialog
 
 import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 import wave
 import numpy as np
@@ -17,23 +22,33 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from audio import AudioPlayer
+
+
+"""
+Global variables
+"""
+file_path = None
 
 """
 Callback functions
 """
-def open_file(frame):
+def open_file(graph_frame, command_frame):
     file_path = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if file_path:
+        audio_player.load_wav(file_path)
         l_file_name.configure(text=file_path)
-        for widget in frame.winfo_children():
+        
+        for widget in graph_frame.winfo_children():
             widget.destroy()
-        plot_waveform(frame, file_path)
+
+        plot_waveform(graph_frame, file_path)
+
+        for widget in command_frame.winfo_children():
+            widget.state(['!disabled'])
 
 def agreement_changed():
     print("Checkbox: ", checked.get())
-
-def button_clicked():
-    print('Button clicked')
 
 def slider01_changed(event):
     slider01_label.configure(text=formated_value(value_s01.get()))
@@ -64,6 +79,35 @@ def slider09_changed(event):
 
 def slider10_changed(event):
     slider10_label.configure(text=formated_value(value_s10.get()))
+
+def exit():
+    audio_player.stop_stream()
+    root.destroy()
+
+def audio_finish(btn_play, btn_pause):
+    print('Terminou o WAV.')
+    btn_pause.state(['disabled'])
+    btn_play.state(['!disabled'])
+
+def pause_audio(btn_pause, btn_play):
+    print('Pause!')
+    audio_player.pause_wav()
+    # set the disabled flag
+    btn_pause.state(['disabled'])
+    btn_play.state(['!disabled'])
+
+# Function to play the WAV file using a buffer
+def play_audio(btn_play, btn_pause):
+    print('Play...')
+    if audio_player.is_ready():
+        if audio_player.is_playing():
+            audio_player.pause_wav()
+        else:
+            audio_player.play_wav(lambda:audio_finish(btn_play, btn_pause))
+    
+    # set the disabled flag
+    btn_play.state(['disabled'])
+    btn_pause.state(['!disabled'])
 
 
 """
@@ -107,14 +151,12 @@ def plot_waveform(frame, file_path):
         # Create time array for x-axis
         time_array = np.linspace(0, n_frames/framerate, num=n_frames)
         
-
         # create the barchart
         axes.plot(time_array, audio_array)
         
     else:
         # create the barchart
         axes.axhline(y=10, color='blue', linestyle='-')
-        #axes.plot([0, 100], [-3, 3])
 
     # Remove axis labels
     axes.set_xticks([])
@@ -138,9 +180,15 @@ def create_command_frame(container, checked_variable):
     frame.columnconfigure(1, weight=1)
     frame.columnconfigure(2, weight=1)
 
-    ttk.Button(frame, text='Play', command=button_clicked)
-    ttk.Button(frame, text='Pause', command=button_clicked)
-    ttk.Checkbutton(frame, text='Repeat', command=agreement_changed, variable=checked_variable)
+    play_button = ttk.Button(frame, text='Play')
+    pause_button = ttk.Button(frame, text='Pause', command=pause_audio)
+    check_button = ttk.Checkbutton(frame, text='Repeat', variable=checked_variable)
+    play_button.configure(command=lambda:play_audio(play_button, pause_button))
+    pause_button.configure(command=lambda:play_audio(pause_button, play_button))
+    check_button.configure(command=agreement_changed)
+    play_button.state(['disabled'])
+    pause_button.state(['disabled'])
+    check_button.state(['disabled'])
 
     i = 0
     for widget in frame.winfo_children():
@@ -151,7 +199,7 @@ def create_command_frame(container, checked_variable):
 
 
 """
- Equalizer code
+Equalizer code
 """
 root = tk.Tk()
 
@@ -160,6 +208,9 @@ root.title("Equalizer")
 root.geometry("700x480+50+50")
 root.resizable(False, False)
 root.iconbitmap("logo_unb.ico")
+
+# Creating a audio player
+audio_player = AudioPlayer()
 
 # configure the grid
 root.columnconfigure(0, weight=1)
@@ -244,19 +295,17 @@ frame_graph['relief'] = 'sunken'
 plot_waveform(frame_graph, None)
 frame_graph.grid(column=0, row=5, columnspan=10, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10)
 
-b_select_file = ttk.Button(root, text='Open file', command=lambda: open_file(frame_graph))
-b_select_file.grid(column=7, row=0, columnspan=3, sticky=tk.E, padx=10, pady=5)
-
 value_slider = tk.DoubleVar()
 slider = ttk.Scale(root, from_=0, to=100, variable=value_slider) # add param: command=[function]
 slider.grid(column=0, row=6, columnspan=10, sticky=tk.EW, padx=40)
 
 checked = tk.IntVar()
-button_frame = create_command_frame(root, checked)
-button_frame.grid(column=0, row=7, columnspan=4, sticky=tk.W)
-b_exit  = ttk.Button(root, text='Exit', command=root.destroy).grid(column=8, row=7, columnspan=2, sticky=tk.E, padx=10)
+command_frame = create_command_frame(root, checked)
+command_frame.grid(column=0, row=7, columnspan=4, sticky=tk.W)
+b_exit  = ttk.Button(root, text='Exit', command=exit).grid(column=8, row=7, columnspan=2, sticky=tk.E, padx=10)
 
-
+open_file_button = ttk.Button(root, text='Open file', command=lambda: open_file(frame_graph, command_frame))
+open_file_button.grid(column=7, row=0, columnspan=3, sticky=tk.E, padx=10, pady=5)
 
 # code to run across multi platforms
 try:
