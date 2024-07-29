@@ -26,11 +26,6 @@ from audio import AudioPlayer
 
 
 """
-Global variables
-"""
-file_path = None
-
-"""
 Callback functions
 """
 def open_file(graph_frame, command_frame):
