@@ -11,3 +11,7 @@ This folder stores project files of the Digital Signal Processing (DSP) course a
 [Audio Data Processing in Python](https://youtu.be/ZqpSb5p1xQo?si=dcprXBTX3etesee8)
 
 [Tkinter Tutorial](https://www.pythontutorial.net/tkinter/) (GUI)
+
+[Fourier Transforms With scipy.fft: Python Signal Processing](https://realpython.com/python-scipy-fft/)
+
+[Fourier Transform, the Practical Python Implementation](https://towardsdatascience.com/fourier-transform-the-practical-python-implementation-acdd32f1b96a)
