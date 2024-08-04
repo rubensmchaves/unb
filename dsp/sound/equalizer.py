@@ -24,23 +24,29 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from audio import AudioPlayer
 
+from scipy.fft import fft, fftfreq
 
 """
 Callback functions
 """
-def open_file(graph_frame, command_frame):
+def open_file(graph_frame, dft_frame, frm_command, label_file):
     file_path = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if file_path:
         audio_player.load_wav(file_path)
-        l_file_name.configure(text=file_path)
+        label_file.configure(text=file_path)
         
         for widget in graph_frame.winfo_children():
             widget.destroy()
 
-        plot_waveform(graph_frame, file_path)
+        for widget in dft_frame.winfo_children():
+            widget.destroy()
 
-        for widget in command_frame.winfo_children():
+        plot_waveform(graph_frame, file_path)
+        plot_dft(dft_frame, file_path)
+
+        for widget in frm_command.winfo_children():
             widget.state(['!disabled'])
+
 
 def agreement_changed():
     print("Checkbox: ", checked.get())
@@ -114,17 +120,22 @@ def formated_value(value):
 
 def plot_waveform(frame, file_path):
     matplotlib.use('TkAgg')
-    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     # create a figure
-    figure = Figure(figsize=(6, 2), dpi=100)
+    figure = Figure(figsize=(6, 1.75), dpi=100)
+    figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)  # Adjust margins
 
     # create axes
     axes = figure.add_subplot()
+    axes.set_xlabel("Time [s]", fontsize=8)
+    axes.set_ylabel("Amplitude", fontsize=8)
+
+    # Set the font size of the tick labels
+    axes.tick_params(axis='both', which='major', labelsize=8)
 
     print('Path:', file_path)
     if file_path:
-        print('Abrindo arquivo WAV...')
+        print('Opening WAV file...')
         with wave.open(file_path, 'rb') as wav_file:
             # Extract audio parameters
             n_channels = wav_file.getnchannels()
@@ -135,7 +146,7 @@ def plot_waveform(frame, file_path):
             # Read the audio data
             audio_data = wav_file.readframes(n_frames)
         
-        print('Deixando arquivo...')
+        print('Closing WAV file...')
         # Convert the audio data to numpy array
         audio_array = np.frombuffer(audio_data, dtype=np.int16)
         
@@ -146,51 +157,161 @@ def plot_waveform(frame, file_path):
         # Create time array for x-axis
         time_array = np.linspace(0, n_frames/framerate, num=n_frames)
         
-        # create the barchart
+        # create the waveform plot
         axes.plot(time_array, audio_array)
-        
     else:
-        # create the barchart
+        # create the placeholder plot
         axes.axhline(y=10, color='blue', linestyle='-')
 
-    # Remove axis labels
-    axes.set_xticks([])
-    axes.set_yticks([])
-
-    figure.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    # Use tight layout to avoid any cutoff
+    figure.tight_layout()
 
     # create FigureCanvasTkAgg object
     figure_canvas = FigureCanvasTkAgg(figure, frame)
     figure_canvas.draw()
     figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
+
+def plot_dft(frame, file_path):
+    matplotlib.use('TkAgg')
+
+    # create a figure
+    figure = Figure(figsize=(6, 1.75), dpi=100)
+    figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)  # Adjust margins
+
+    # create axes
+    axes = figure.add_subplot()
+    axes.set_xlabel("Frequency [Hz]", fontsize=8)
+    axes.set_ylabel("Magnitude", fontsize=8)
+
+    # Set the font size of the tick labels
+    axes.tick_params(axis='both', which='major', labelsize=8)
+
+    print('Path:', file_path)
+    if file_path:
+        print('Opening WAV file...')
+        with wave.open(file_path, 'rb') as wav_file:
+            # Extract audio parameters
+            n_channels = wav_file.getnchannels()
+            sampwidth = wav_file.getsampwidth()
+            framerate = wav_file.getframerate()
+            n_frames = wav_file.getnframes()
+            
+            # Read the audio data
+            audio_data = wav_file.readframes(n_frames)
+        
+        print('Closing WAV file...')
+        # Convert the audio data to numpy array
+        audio_array = np.frombuffer(audio_data, dtype=np.int16)
+        
+        # If stereo, take only one channel for simplicity
+        if n_channels == 2:
+            audio_array = audio_array[::2]
+
+        # Compute the DFT
+        N = len(audio_array)
+        yf = fft(audio_array)
+        xf = fftfreq(N, 1 / framerate)
+
+        # The magnitude spectrum of the DFT is plotted. Only the positive frequencies up 
+        # to the Nyquist frequency are plotted (xf[:N // 2] and np.abs(yf[:N // 2])).
+        axes.plot(xf[:N // 2], np.abs(yf[:N // 2]))
+    else:
+        # create the placeholder plot
+        axes.axhline(y=10, color='blue', linestyle='-')
+
+    # Use tight layout to avoid any cutoff
+    figure.tight_layout()
+
+    # create FigureCanvasTkAgg object
+    figure_canvas = FigureCanvasTkAgg(figure, frame)
+    figure_canvas.draw()
+    figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+
+def create_file_frame(container, row):
+    frame = ttk.Frame(container)
+
+    # grid layout for the input frame
+    frame.columnconfigure(0, weight=8)
+    frame.columnconfigure(1, weight=2)
     
+    # Create inner frames
+    frm_label = ttk.Frame(frame)
+    frm_button = ttk.Frame(frame)
 
-def create_command_frame(container, checked_variable):
+    # Create widgets 
+    lbl_file = ttk.Label(frm_label, text='WAVE file...')
+    btn_open = ttk.Button(frm_button, text='Open')
 
+    # Place widgets into the inner frames
+    lbl_file.pack(side=tk.LEFT)
+    btn_open.pack(side=tk.RIGHT)
+    frm_label.grid(column=0, row=0, sticky=tk.W)
+    frm_button.grid(column=1, row=0, sticky=tk.E)
+    frame.grid(column=0, row=row, columnspan=10, sticky=tk.EW, padx=10, pady=5)
+
+    return lbl_file, btn_open
+
+
+def create_equalizer_frame(container, row):
+    frame = ttk.Frame(container)
+    btn_apply = ttk.Button(frame, text='Apply')
+    btn_apply.pack(side=tk.RIGHT)
+    frame.grid(column=0, row=row, columnspan=10, sticky=tk.E, padx=10, pady=5)
+    return btn_apply
+
+
+def create_graph_frame(container, row):
+    frame = ttk.Frame(container)
+    frame.columnconfigure(0, weight=1)
+
+    lbl_gph_wave = ttk.Label(frame, text='WAVE graph')
+    frm_graph = ttk.Frame(frame)
+    frm_graph['borderwidth'] = 5
+    frm_graph['relief'] = 'sunken'
+    plot_waveform(frm_graph, None)
+    lbl_gph_wave.grid(column=0, row=0, sticky=tk.W)
+    frm_graph.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+    lbl_gph_dft = ttk.Label(frame, text='Discrete Fourier Transform (DTF) graph')
+    frm_dft_graph = ttk.Frame(frame)
+    frm_dft_graph['borderwidth'] = 5
+    frm_dft_graph['relief'] = 'sunken'
+    plot_dft(frm_dft_graph, None)
+    lbl_gph_dft.grid(column=0, row=2, sticky=tk.W)
+    frm_dft_graph.grid(column=0, row=3, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+    frame.grid(column=0, row=row, columnspan=10, sticky=tk.EW, padx=10, pady=5)
+
+    return frm_graph, frm_dft_graph
+
+
+def create_command_frame(container, row, checked_var):
     frame = ttk.Frame(container)
 
     # grid layout for the input frame
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=1)
-    frame.columnconfigure(2, weight=1)
 
-    play_button = ttk.Button(frame, text='Play')
-    pause_button = ttk.Button(frame, text='Pause', command=pause_audio)
-    check_button = ttk.Checkbutton(frame, text='Repeat', variable=checked_variable)
-    play_button.configure(command=lambda:play_audio(play_button, pause_button))
-    pause_button.configure(command=lambda:play_audio(pause_button, play_button))
-    check_button.configure(command=agreement_changed)
-    play_button.state(['disabled'])
-    pause_button.state(['disabled'])
-    check_button.state(['disabled'])
+    frm_left  = ttk.Frame(frame)
+    btn_check = ttk.Checkbutton(frm_left, text='Repeat', variable=checked_var)
+    btn_play  = ttk.Button(frm_left, text='Play')
+    btn_pause = ttk.Button(frm_left, text='Pause')
+    btn_exit  = ttk.Button(frame, text='Exit')
 
-    i = 0
-    for widget in frame.winfo_children():
-        widget.grid(column=i, row=0, padx=10, pady=5)
-        i += 1
+    btn_play.state(['disabled'])
+    btn_pause.state(['disabled'])
+    btn_check.state(['disabled'])
 
-    return frame
+    btn_play.pack(side=tk.LEFT)
+    btn_pause.pack(side=tk.LEFT)
+    btn_check.pack(side=tk.LEFT)
+    frm_left.grid(column=0, row=0, sticky=tk.W)
+    btn_exit.grid(column=1, row=0, sticky=tk.E)
+    
+    frame.grid(column=0, row=row, columnspan=10, sticky=tk.EW, padx=10, pady=5)
+    return frm_left, btn_play, btn_pause, btn_check, btn_exit
 
 
 """
@@ -200,7 +321,7 @@ root = tk.Tk()
 
 # window attributes
 root.title("Equalizer")
-root.geometry("700x480+50+50")
+root.geometry("950x690+0+0")
 root.resizable(False, False)
 root.iconbitmap("logo_unb.ico")
 
@@ -218,6 +339,9 @@ root.columnconfigure(6, weight=1)
 root.columnconfigure(7, weight=1)
 root.columnconfigure(8, weight=1)
 root.columnconfigure(9, weight=1)
+
+# First line frame (file path, open button and apply button)
+lbl_file, btn_open = create_file_frame(root, row=0)
 
 # creating slider bars
 value_s01 = tk.DoubleVar()
@@ -242,11 +366,6 @@ slider08 = ttk.Scale(root, from_=6, to=-6, orient='vertical', command=slider08_c
 slider09 = ttk.Scale(root, from_=6, to=-6, orient='vertical', command=slider09_changed, variable=value_s09)
 slider10 = ttk.Scale(root, from_=6, to=-6, orient='vertical', command=slider10_changed, variable=value_s10)
 
-# place a label on the root window
-l_file_name = ttk.Label(root, text='WAVE file...')
-
-# Adding to the grid
-l_file_name.grid(column=0, row=0, columnspan=7, sticky=tk.W, padx=10, pady=5)
 for i in range(0, 10):
     ttk.Label(root, text='+6').grid(column=i, row=1, sticky=tk.N)
 slider01.grid(column=0, row=2, sticky=tk.N, padx=4)
@@ -284,23 +403,19 @@ slider09_label.grid(column=8, row=4, sticky=tk.N)
 slider10_label = ttk.Label(root, text='0', font=font_style)
 slider10_label.grid(column=9, row=4, sticky=tk.N)
 
-frame_graph = ttk.Frame(root)
-frame_graph['borderwidth'] = 5
-frame_graph['relief'] = 'sunken'
-plot_waveform(frame_graph, None)
-frame_graph.grid(column=0, row=5, columnspan=10, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10)
+btn_apply = create_equalizer_frame(root, row=5)
 
-value_slider = tk.DoubleVar()
-slider = ttk.Scale(root, from_=0, to=100, variable=value_slider) # add param: command=[function]
-slider.grid(column=0, row=6, columnspan=10, sticky=tk.EW, padx=40)
+frm_graph, frm_dft_graph = create_graph_frame(root, row=6)
 
-checked = tk.IntVar()
-command_frame = create_command_frame(root, checked)
-command_frame.grid(column=0, row=7, columnspan=4, sticky=tk.W)
-b_exit  = ttk.Button(root, text='Exit', command=exit).grid(column=8, row=7, columnspan=2, sticky=tk.E, padx=10)
+var_check = tk.IntVar()
+frm_command, btn_play, btn_pause, btn_check, btn_exit = create_command_frame(root, 7, var_check)
 
-open_file_button = ttk.Button(root, text='Open file', command=lambda: open_file(frame_graph, command_frame))
-open_file_button.grid(column=7, row=0, columnspan=3, sticky=tk.E, padx=10, pady=5)
+# Event configuration (command)
+btn_open.configure(command=lambda: open_file(frm_graph, frm_dft_graph, frm_command, lbl_file))
+btn_play.configure(command=lambda:play_audio(btn_play, btn_pause))
+btn_pause.configure(command=lambda:play_audio(btn_pause, btn_play))
+btn_check.configure(command=agreement_changed)
+btn_exit.configure(command=exit)
 
 # code to run across multi platforms
 try:
