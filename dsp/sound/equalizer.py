@@ -17,12 +17,14 @@ from tkinter import filedialog
 import matplotlib.pyplot as plt
 import matplotlib
 import wave
+import math
 import numpy as np
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from audio import AudioPlayer
+from audio import SPECTRUNS
 
 from scipy.fft import fft, fftfreq
 
@@ -32,34 +34,24 @@ Global variables
 """
 sliders = [None] * 10
 slider_labels = [None] * 10
-sliders_freqs = [
-        (   16,    48), # 32Hz 
-        (   48,    96), # 64Hz
-        (   96,   192), # 128Hz
-        (  192,   384), # 256Hz
-        (  384,   756), # 512Hz
-        (  756,  1500), # 1KHz
-        ( 1500,  3000), # 2KHz
-        ( 3000,  6000), # 4KHz
-        ( 6000, 12000), # 8KHz
-        (12000, 20000)  # 16KHz
-    ]
+sliders_freqs = SPECTRUNS
 audio_player = AudioPlayer()
-
+frequences = ['32Hz', '64Hz', '128Hz', '256Hz', '512Hz', '1KHz', '2KHz', '4KHz', '8KHz', '16KHz']
 
 """
 Callback functions
 """
-def onClick_Open(wave_frame, dft_frame, frm_command, label_file):
+def onClick_Open(wave_frame, dft_frame, frm_command, btn_apply, label_file):
     file_path = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if file_path:
-        audio_player.load_wav(file_path)
+        audio_player.load_wav(file_path, verbose=True)
         label_file.configure(text=file_path)
     
         update_graph_frames(wave_frame, dft_frame, audio_player)    
 
         for widget in frm_command.winfo_children():
             widget.state(['!disabled'])
+        btn_apply.state(['!disabled'])
 
 
 def onClick_Apply(wave_frame, dft_frame, btn_save, audio_player: AudioPlayer):
@@ -81,7 +73,7 @@ def onClick_Apply(wave_frame, dft_frame, btn_save, audio_player: AudioPlayer):
     
         audio_array = audio_player.audio_array
         audio_array = apply_filter(audio_array, filter_sum)
-        audio_player.audio_array = audio_array.astype(np.int16)
+        audio_player.set_audio_array(audio_array.astype(np.int16)) # numpy.ndarray
         update_graph_frames(wave_frame, dft_frame, audio_player)
         btn_save.state(['!disabled'])
 
@@ -151,6 +143,7 @@ def onClick_Exit():
     audio_player.stop_stream()
     root.destroy()
 
+
 def audio_finish(btn_play, btn_pause):
     print('Terminou o WAV.')
     btn_pause.state(['disabled'])
@@ -163,18 +156,20 @@ def pause_audio(btn_pause, btn_play):
     btn_pause.state(['disabled'])
     btn_play.state(['!disabled'])
 
+
 # Function to play the WAV file using a buffer
-def play_audio(btn_play, btn_pause):
+def play_audio(btn_play, btn_pause, progress_vars):
     print('Play...')
     if audio_player.is_ready():
         if audio_player.is_playing():
             audio_player.pause_wav()
         else:
-            audio_player.play_wav(lambda:audio_finish(btn_play, btn_pause))
+            audio_player.play_wav(progress_vars, lambda:audio_finish(btn_play, btn_pause))
     
     # set the disabled flag
     btn_play.state(['disabled'])
     btn_pause.state(['!disabled'])
+
 
 
 """
@@ -191,7 +186,7 @@ def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
             taps[i] = 2 * (high - low)
         else:
             taps[i] = (np.sin(2 * np.pi * high * n) - np.sin(2 * np.pi * low * n)) / (np.pi * n)
-    taps *= np.hamming(numtaps)
+    taps *= hamming_window(numtaps)
     if verbose:
         print('bandpass_filter(...):')
         print('    lowcut:', low)
@@ -200,6 +195,14 @@ def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
         print('    n. taps:', numtaps)
         print('    return(taps):', taps.shape)
     return taps
+
+
+def hamming_window(M):
+    if M <= 0:
+        return np.array([])
+    # Generate the window
+    n = np.arange(M)
+    return 0.54 - 0.46 * np.cos(2.0 * np.pi * n / (M - 1))
 
 
 def apply_filter(filter_coef, filter_taps, verbose=False):
@@ -242,7 +245,7 @@ def plot_waveform(frame, audio_player: AudioPlayer):
     matplotlib.use('TkAgg')
 
     # create a figure
-    figure = Figure(figsize=(6, 1.85), dpi=100)
+    figure = Figure(figsize=(9, 1.9), dpi=100)
     figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)  # Adjust margins
 
     # create axes
@@ -256,8 +259,6 @@ def plot_waveform(frame, audio_player: AudioPlayer):
     if (audio_player):
         n_frames = audio_player.n_frames
         framerate = audio_player.framerate
-
-        # Convert the audio data to numpy array
         audio_array = audio_player.audio_array
         
         # Create time array for x-axis
@@ -282,7 +283,7 @@ def plot_dft(frame, audio_player: AudioPlayer):
     matplotlib.use('TkAgg')
 
     # create a figure
-    figure = Figure(figsize=(6, 1.85), dpi=100)
+    figure = Figure(figsize=(4.5, 1.7), dpi=100)
     figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2)  # Adjust margins
 
     # create axes
@@ -295,8 +296,6 @@ def plot_dft(frame, audio_player: AudioPlayer):
 
     if (audio_player):
         framerate = audio_player.framerate
-
-        # Convert the audio data to numpy array
         audio_array = audio_player.audio_array
 
         # Compute the DFT
@@ -318,19 +317,53 @@ def plot_dft(frame, audio_player: AudioPlayer):
     figure_canvas = FigureCanvasTkAgg(figure, frame)
     figure_canvas.draw()
     figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+    return frame
+
+
+def spectrum_analyzer_frame(container, row):
+    frame = ttk.Frame(container)
+
+    # Create a style object
+    style = ttk.Style()
+
+    # Configure the style for the TFrame widget
+    style.configure('White.TFrame', background='white')
+    frm_bars = ttk.Frame(frame, style='White.TFrame')
+    frm_bars['borderwidth'] = 5
+    frm_bars['relief'] = 'sunken'
+
+    progress_vars = []
+    
+    # grid layout for the input frame to place the progress bar widgets
+    for i in range(len(frequences)):
+        frame.columnconfigure(i, weight=1)
+        frm_bars.columnconfigure(i, weight=1)
+        progress_var = tk.DoubleVar()
+        progress_vars.append(progress_var)
+        spectrum_bar = ttk.Progressbar(frm_bars, orient='vertical', variable=progress_var, mode='determinate', length=150)
+        spectrum_bar.grid(column=i, row=0, sticky=tk.N)
+        ttk.Label(frm_bars, text=frequences[i], background='white', font=font.Font(size=8)).grid(column=i, row=1, sticky=tk.N, padx=2.5)
+
+    ttk.Label(frame, text='Spectrum analyzer').grid(column=0, row=0, columnspan=3, sticky=tk.W)
+    frm_bars.grid(column=0, row=1, columnspan=3, sticky=tk.EW, padx=2.5)
+
+    # placing the DFT graph
+    lbl_gph_dft = ttk.Label(frame, text='Discrete Fourier Transform (DTF) graph')
+    frm_dft_graph = ttk.Frame(frame)
+    frm_dft_graph['borderwidth'] = 5
+    frm_dft_graph['relief'] = 'sunken'
+    plot_dft(frm_dft_graph, None)
+    lbl_gph_dft.grid(column=3, row=0, columnspan=7, sticky=tk.W, padx=2.5)
+    frm_dft_graph.grid(column=3, row=1, columnspan=7, sticky=tk.EW, padx=2.5)
+
+    frame.grid(column=0, row=row, columnspan=10, sticky=tk.EW, padx=10, pady=2.5)
+
+    return progress_vars, frm_dft_graph
 
 
 def add_frequence_labels(container, row, font_style):
-    ttk.Label(container, text=' 32Hz', font=font_style).grid(column=0, row=row, sticky=tk.N)
-    ttk.Label(container, text=' 64Hz', font=font_style).grid(column=1, row=row, sticky=tk.N)
-    ttk.Label(container, text='128Hz', font=font_style).grid(column=2, row=row, sticky=tk.N)
-    ttk.Label(container, text='256Hz', font=font_style).grid(column=3, row=row, sticky=tk.N)
-    ttk.Label(container, text='512Hz', font=font_style).grid(column=4, row=row, sticky=tk.N)
-    ttk.Label(container, text=' 1KHz', font=font_style).grid(column=5, row=row, sticky=tk.N)
-    ttk.Label(container, text=' 2KHz', font=font_style).grid(column=6, row=row, sticky=tk.N)
-    ttk.Label(container, text=' 4KHz', font=font_style).grid(column=7, row=row, sticky=tk.N)
-    ttk.Label(container, text=' 8KHz', font=font_style).grid(column=8, row=row, sticky=tk.N)
-    ttk.Label(container, text='16KHz', font=font_style).grid(column=9, row=row, sticky=tk.N)
+    for i in range(len(frequences)):
+        ttk.Label(container, text=frequences[i], font=font_style).grid(column=1, row=row, sticky=tk.N)
 
 
 def create_equalizer_frame(container, row):
@@ -347,7 +380,7 @@ def create_equalizer_frame(container, row):
     # Create widgets 
     btn_open = ttk.Button(frm_left, text='Open')
     lbl_file = ttk.Label(frm_left, text='WAVE file...')
-    btn_apply = ttk.Button(frm_right, text='Apply')
+    btn_apply = ttk.Button(frm_right, text='Apply', state=['disabled'])
     btn_reset = ttk.Button(frm_right, text='Reset')
 
     # Place widgets
@@ -373,17 +406,8 @@ def create_wave_frame(container, row):
     lbl_gph_wave.grid(column=0, row=0, sticky=tk.W)
     frm_graph.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-    lbl_gph_dft = ttk.Label(frame, text='Discrete Fourier Transform (DTF) graph')
-    frm_dft_graph = ttk.Frame(frame)
-    frm_dft_graph['borderwidth'] = 5
-    frm_dft_graph['relief'] = 'sunken'
-    plot_dft(frm_dft_graph, None)
-    lbl_gph_dft.grid(column=0, row=2, sticky=tk.W)
-    frm_dft_graph.grid(column=0, row=3, sticky=(tk.W, tk.E, tk.N, tk.S))
-
     frame.grid(column=0, row=row, columnspan=10, sticky=tk.EW, padx=10, pady=5)
-
-    return frm_graph, frm_dft_graph
+    return frm_graph
 
 
 def create_command_frame(container, row, checked_var):
@@ -490,17 +514,18 @@ for i in range(len(slider_labels)):
 
 lbl_file, btn_open, btn_reset, btn_apply = create_equalizer_frame(root, row=5)
 
-frm_graph, frm_dft_graph = create_wave_frame(root, row=6)
+frm_graph = create_wave_frame(root, row=6)
+progress_vars, frm_dft_graph = spectrum_analyzer_frame(root, row=7)
 
 var_check = tk.IntVar()
-frm_command, btn_play, btn_pause, btn_check, btn_exit, btn_save = create_command_frame(root, 7, var_check)
+frm_command, btn_play, btn_pause, btn_check, btn_exit, btn_save = create_command_frame(root, 8, var_check)
 
 # Event configuration (command)
-btn_open.configure(command=lambda: onClick_Open(frm_graph, frm_dft_graph, frm_command, lbl_file))
+btn_open.configure(command=lambda: onClick_Open(frm_graph, frm_dft_graph, frm_command, btn_apply, lbl_file))
 btn_reset.configure(command=onClick_Reset)
 btn_apply.configure(command=lambda: onClick_Apply(frm_graph, frm_dft_graph, btn_save, audio_player))
-btn_play.configure(command=lambda:play_audio(btn_play, btn_pause))
-btn_pause.configure(command=lambda:play_audio(btn_pause, btn_play))
+btn_play.configure(command=lambda:play_audio(btn_play, btn_pause, progress_vars))
+btn_pause.configure(command=lambda:pause_audio(btn_pause, btn_play))
 btn_check.configure(command=onChange_Repeat)
 btn_exit.configure(command=lambda:quit(audio_player))
 btn_save.configure(command=lambda:onClick_Save(audio_player))
