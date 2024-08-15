@@ -25,6 +25,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from audio import AudioPlayer
 from audio import SPECTRUNS
+from graphs import plot_filters
 
 from scipy.fft import fft, fftfreq
 
@@ -34,6 +35,7 @@ Global variables
 """
 sliders = [None] * 10
 slider_labels = [None] * 10
+filters = [None] * 10
 sliders_freqs = SPECTRUNS
 audio_player = AudioPlayer()
 frequences = ['32Hz', '64Hz', '128Hz', '256Hz', '512Hz', '1KHz', '2KHz', '4KHz', '8KHz', '16KHz']
@@ -41,7 +43,7 @@ frequences = ['32Hz', '64Hz', '128Hz', '256Hz', '512Hz', '1KHz', '2KHz', '4KHz',
 """
 Callback functions
 """
-def onClick_Open(wave_frame, dft_frame, frm_command, btn_apply, label_file):
+def onClick_Open(wave_frame, dft_frame, frm_command, btn_apply, btn_filters, label_file):
     file_path = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
     if file_path:
         audio_player.load_wav(file_path, verbose=True)
@@ -52,26 +54,21 @@ def onClick_Open(wave_frame, dft_frame, frm_command, btn_apply, label_file):
         for widget in frm_command.winfo_children():
             widget.state(['!disabled'])
         btn_apply.state(['!disabled'])
+        btn_filters.state(['!disabled'])
 
 
 def onClick_Apply(wave_frame, dft_frame, btn_save, audio_player: AudioPlayer):
-    slider_values = [float(slider.get()) for slider in sliders]
 
     if audio_player.loaded:
         fs = audio_player.framerate
-        M = 1001
+        filters, M = create_filters(fs)
         filter_sum = np.zeros(M)
-        print("Equalizer values:", slider_values)
         for i in range(len(sliders)):
-            coef = np.zeros(M)
-            lowcut = sliders_freqs[i][0]
-            highcut = sliders_freqs[i][1]
-            coef += bandpass_filter(lowcut, highcut, fs, M)
-
             slider_value_dB = float(sliders[i].get())
-            filter_sum += amplify_attenuate_db(coef, slider_value_dB)
-    
-        audio_array = audio_player.audio_array
+            filters[i] = amplify_attenuate_db(filters[i], slider_value_dB)
+            filter_sum += filters[i]
+        
+        audio_array = audio_player.original_audio_array
         audio_array = apply_filter(audio_array, filter_sum)
         audio_player.set_audio_array(audio_array.astype(np.int16)) # numpy.ndarray
         update_graph_frames(wave_frame, dft_frame, audio_player)
@@ -171,12 +168,29 @@ def play_audio(btn_play, btn_pause, progress_vars):
     btn_pause.state(['!disabled'])
 
 
+def onClick_Filters():
+    filters, window_size = create_filters(audio_player.framerate)
+    colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
+    titles = frequences
+    plot_filters(filters, frequences, colors, window_size)
+
+
 
 """
 Functions
 """
+def create_filters(framerate):
+    window_size = 301
+    for i in range(len(filters)):
+        filters[i] = np.zeros(window_size)
+        lowcut = sliders_freqs[i][0]
+        highcut = sliders_freqs[i][1]
+        filters[i] += bandpass_filter(lowcut, highcut, framerate, window_size)
+    return filters, window_size
+        
+
 def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
-    nyquist = 0.5 * fs
+    nyquist = 1 * fs
     low = lowcut / nyquist
     high = highcut / nyquist
     taps = np.zeros(numtaps)
@@ -186,7 +200,8 @@ def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
             taps[i] = 2 * (high - low)
         else:
             taps[i] = (np.sin(2 * np.pi * high * n) - np.sin(2 * np.pi * low * n)) / (np.pi * n)
-    taps *= hamming_window(numtaps)
+    #taps *= hamming_window(numtaps)
+    taps *= np.hamming(numtaps)
     if verbose:
         print('bandpass_filter(...):')
         print('    lowcut:', low)
@@ -363,7 +378,7 @@ def spectrum_analyzer_frame(container, row):
 
 def add_frequence_labels(container, row, font_style):
     for i in range(len(frequences)):
-        ttk.Label(container, text=frequences[i], font=font_style).grid(column=1, row=row, sticky=tk.N)
+        ttk.Label(container, text=frequences[i], font=font_style).grid(column=i, row=row, sticky=tk.N)
 
 
 def create_equalizer_frame(container, row):
@@ -381,6 +396,7 @@ def create_equalizer_frame(container, row):
     btn_open = ttk.Button(frm_left, text='Open')
     lbl_file = ttk.Label(frm_left, text='WAVE file...')
     btn_apply = ttk.Button(frm_right, text='Apply', state=['disabled'])
+    btn_filters = ttk.Button(frm_right, text='Filters', state=['disabled'])
     btn_reset = ttk.Button(frm_right, text='Reset')
 
     # Place widgets
@@ -390,8 +406,9 @@ def create_equalizer_frame(container, row):
     lbl_file.pack(side=tk.LEFT, padx=5)
     frm_right.grid(column=1, row=0, sticky=tk.E)
     btn_apply.pack(side=tk.RIGHT)
+    btn_filters.pack(side=tk.RIGHT)
     btn_reset.pack(side=tk.RIGHT)
-    return lbl_file, btn_open, btn_reset, btn_apply
+    return lbl_file, btn_open, btn_filters, btn_reset, btn_apply
 
 
 def create_wave_frame(container, row):
@@ -486,11 +503,11 @@ font_style = font.Font(size=8, weight="bold")
 add_frequence_labels(root, row=0, font_style=font_style)
 
 for i in range(0, 10):
-    ttk.Label(root, text='+6').grid(column=i, row=1, sticky=tk.N)
+    ttk.Label(root, text='+12').grid(column=i, row=1, sticky=tk.N)
 
 # creating sliders widget
 for i in range(len(sliders)):
-    sliders[i] = ttk.Scale(root, from_=6, to=-6, orient='vertical', variable=tk.DoubleVar())
+    sliders[i] = ttk.Scale(root, from_=12, to=-12, orient='vertical', variable=tk.DoubleVar())
     sliders[i].grid(column=i, row=2, sticky=tk.N)    
 
 sliders[0].configure(command=onChanged_Slider00)
@@ -505,14 +522,14 @@ sliders[8].configure(command=onChanged_Slider08)
 sliders[9].configure(command=onChanged_Slider09)
 
 for i in range(0, 10):
-    ttk.Label(root, text='-6').grid(column=i, row=3, sticky=tk.N)
+    ttk.Label(root, text='-12').grid(column=i, row=3, sticky=tk.N)
 
 # Create labels to receive the sliders values
 for i in range(len(slider_labels)):
-    slider_labels[i] = ttk.Label(root, text='0.00 dB', font=font_style, width=7)
+    slider_labels[i] = ttk.Label(root, text='0.00 dB', font=font_style, width=8)
     slider_labels[i].grid(column=i, row=4, sticky=tk.N)
 
-lbl_file, btn_open, btn_reset, btn_apply = create_equalizer_frame(root, row=5)
+lbl_file, btn_open, btn_filters, btn_reset, btn_apply = create_equalizer_frame(root, row=5)
 
 frm_graph = create_wave_frame(root, row=6)
 progress_vars, frm_dft_graph = spectrum_analyzer_frame(root, row=7)
@@ -521,7 +538,8 @@ var_check = tk.IntVar()
 frm_command, btn_play, btn_pause, btn_check, btn_exit, btn_save = create_command_frame(root, 8, var_check)
 
 # Event configuration (command)
-btn_open.configure(command=lambda: onClick_Open(frm_graph, frm_dft_graph, frm_command, btn_apply, lbl_file))
+btn_open.configure(command=lambda: onClick_Open(frm_graph, frm_dft_graph, frm_command, btn_apply, btn_filters, lbl_file))
+btn_filters.configure(command=onClick_Filters)
 btn_reset.configure(command=onClick_Reset)
 btn_apply.configure(command=lambda: onClick_Apply(frm_graph, frm_dft_graph, btn_save, audio_player))
 btn_play.configure(command=lambda:play_audio(btn_play, btn_pause, progress_vars))

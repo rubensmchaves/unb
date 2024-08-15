@@ -30,7 +30,9 @@ class AudioPlayer:
     def __init__(self):
         self.audio = None
         self.audio_array = None
+        self.original_audio_array = None
         self.spectrum_amplitudes = []
+        self.max_spectrum_amplitudes = []   # max_spectrum_amplitude * 4
         self.stream = None
         self.play_thread = None
         self.loaded = False
@@ -46,6 +48,7 @@ class AudioPlayer:
         self.n_frames = None
 
     def load_wav(self, file_path, verbose=False):
+        self.loaded = False
         if file_path:
             self.file_path = file_path
             self.audio = AudioSegment.from_wav(file_path)
@@ -54,6 +57,7 @@ class AudioPlayer:
             self.framerate = self.audio.frame_rate
             self.n_frames = int(self.audio.frame_count())
             self.audio_array = np.array(self.audio.get_array_of_samples())
+            self.original_audio_array = np.copy(self.audio_array)
             self.set_audio_array(self.audio_array)
             self.loaded = True
             if verbose:
@@ -67,20 +71,31 @@ class AudioPlayer:
         self.audio_array = array
         self.spectrum_amplitudes.clear()
 
-        n_spectruns = len(SPECTRUNS)
-        spectruns_array = [[] * n_spectruns]
+        amplitudes = []
         low = 0
         high = 0
+        j = 0
         for i in range(len(self.audio_array)):
             if i > 0 and math.remainder(i, 4410) == 0: # for each 4410 samples (100 miliseconds) compute...
                 low = high
                 high = i
-                array = self.audio_array[low:high]
-                amplitudes = self.normalized_spectrum_amplitudes(array, self.framerate)
+                array = self.audio_array[low:high]                
+                if self.loaded:
+                    if i == 4410:
+                        print("Serão utilizadas as amplitudes já carregadas!")
+                    max_ampl_val = self.max_spectrum_amplitudes[j]
+                    amplitudes, _ = self.normalized_spectrum_amplitudes(array, self.framerate, max_ampl_val)
+                else:
+                    if i == 4410:
+                        print("As amplitudes de referência serão carregadas...")
+                    amplitudes, max_values = self.normalized_spectrum_amplitudes(array, self.framerate)
+                    self.max_spectrum_amplitudes.append(max_values)
+
                 self.spectrum_amplitudes.append(amplitudes)
+                j += 1
         
 
-    def normalized_spectrum_amplitudes(self, signal, framerate): 
+    def normalized_spectrum_amplitudes(self, signal, framerate, max_ampl_spect_values=None): 
         N = len(signal)
         yf_fft = fft(signal)
         xf_fft = fftfreq(N, 1 / framerate)
@@ -88,7 +103,15 @@ class AudioPlayer:
         xf = xf_fft[:N // 2]
         j = 0
         start = 0
-        amplitudes = []
+
+        compute_max_values = False
+        max_values = [None] * len(SPECTRUNS)
+        if not self.loaded: # If the wave is not loaded, freq. spectrum was not given, prepare to compute it. 
+            compute_max_values = True
+        else:
+            max_values = max_ampl_spect_values
+
+        amplitudes = [None] * len(SPECTRUNS)
         for j in range(len(SPECTRUNS)):
             amplitude = 0
             count = 0
@@ -103,12 +126,18 @@ class AudioPlayer:
                     start = i + 1
                     break
 
-            if count == 0 or max_value == 0:
-                amplitudes.append(0)
+            if compute_max_values:
+                # We multiply the max_value by 4 because the biggest gain/loss is +/- 12dB, 
+                # which amplify/attenuate the signal by 4.
+                max_values[j] = (max_value * 2) 
+
+            if count == 0 or max_values[j] == 0:
+                print("Não foi encontrada amplitude!")
+                amplitudes[j] = 0
             else:
                 # nomalize the amplitude between 0 and 1
-                amplitudes.append(float(amplitude/(max_value * count))) 
-        return amplitudes
+                amplitudes[j]= float(amplitude/(max_values[j] * count))
+        return amplitudes, max_values
 
 
     def play_wav(self, progress_vars, callback_onFinish=None):
