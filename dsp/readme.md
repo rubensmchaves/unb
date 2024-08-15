@@ -7,6 +7,9 @@ This folder stores project files of the Digital Signal Processing (DSP) course a
 
 [5 Best Ways to Read and Write WAV Files Using Python Wave](https://blog.finxter.com/5-best-ways-to-read-and-write-wav-files-using-python-wave/)
 
+## Image files
+[Image Basics](https://datacarpentry.org/image-processing/02-image-basics.html)
+
 ## Python
 [Audio Data Processing in Python](https://youtu.be/ZqpSb5p1xQo?si=dcprXBTX3etesee8)
 
