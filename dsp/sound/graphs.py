@@ -5,6 +5,48 @@ import matplotlib.gridspec as gridspec
 from scipy.signal import freqz
 
 
+def plot_filter(filters, titles, colors, window_size):
+    #print('Titles (shape):', titles.shape)
+    #print('Titles:', titles)
+    #print('Filters:', filters.shape)
+
+    # Create a figure
+    x_axis = 'Normalized Frequency [π*rad/sample]'
+    y_axis = 'Magnitude [dB]'
+
+    # Example data for plotting
+    x = np.arange(window_size)
+    for i in range(len(filters)):
+        w, h = freqz(filters[i], 1.0, worN=window_size)
+        x = w / np.pi
+        y = 20 * np.log10(np.abs(h))
+        plt.figure(figsize=(13, 6), dpi=100, num="Bandpass Filter Frequency Response")
+        plt.title(titles[i])
+        plt.xlabel(x_axis)
+        plt.ylabel(y_axis)
+        plt.plot(x, y, colors[i])
+        plt.show()
+
+    plt.figure(figsize=(13, 6), dpi=100, num="Bandpass Filter Frequency Response")
+    plt.title("All Bandpass Filter Frequency Response")
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
+    for i in range(len(filters)):
+        w, h = freqz(filters[i], 1.0, worN=window_size)
+        x = w / np.pi
+        y = 20 * np.log10(np.abs(h))
+        plt.plot(x, y, colors[i])
+    plt.show()
+
+    subplot = [None] * len(filters)
+    filter_sum = np.zeros(len(filters[0]))
+    for i in range(len(filters)):
+        filter_sum += filters[i]
+    #plt.title("Filters sum")
+    #plt.plot(x, filter_sum)
+    #plt.show()
+
+
 def plot_filters(filters, titles, colors, window_size):
     #print('Titles (shape):', titles.shape)
     #print('Titles:', titles)

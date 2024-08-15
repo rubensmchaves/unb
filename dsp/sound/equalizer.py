@@ -231,7 +231,7 @@ def apply_filter(filter_coef, filter_taps, verbose=False):
 
 
 def amplify_attenuate_db(signal, db, verbose=False):
-    linear_gain = 10**(db / 20)
+    linear_gain = round(10**(db / 20), 2)
     final_signal = signal * linear_gain
     if verbose:
         print('amplify_attenuate(...):')

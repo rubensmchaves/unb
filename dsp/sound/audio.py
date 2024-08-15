@@ -71,23 +71,22 @@ class AudioPlayer:
         self.audio_array = array
         self.spectrum_amplitudes.clear()
 
-        amplitudes = []
+        amplitudes = None
         low = 0
         high = 0
         j = 0
+        if not self.loaded:
+            self.max_spectrum_amplitudes.clear()
+
         for i in range(len(self.audio_array)):
             if i > 0 and math.remainder(i, 4410) == 0: # for each 4410 samples (100 miliseconds) compute...
                 low = high
                 high = i
                 array = self.audio_array[low:high]                
                 if self.loaded:
-                    if i == 4410:
-                        print("Serão utilizadas as amplitudes já carregadas!")
                     max_ampl_val = self.max_spectrum_amplitudes[j]
                     amplitudes, _ = self.normalized_spectrum_amplitudes(array, self.framerate, max_ampl_val)
                 else:
-                    if i == 4410:
-                        print("As amplitudes de referência serão carregadas...")
                     amplitudes, max_values = self.normalized_spectrum_amplitudes(array, self.framerate)
                     self.max_spectrum_amplitudes.append(max_values)
 
@@ -127,16 +126,14 @@ class AudioPlayer:
                     break
 
             if compute_max_values:
-                # We multiply the max_value by 4 because the biggest gain/loss is +/- 12dB, 
-                # which amplify/attenuate the signal by 4.
-                max_values[j] = (max_value * 2) 
+                max_values[j] = round(float(max_value), 1)
 
             if count == 0 or max_values[j] == 0:
-                print("Não foi encontrada amplitude!")
                 amplitudes[j] = 0
             else:
                 # nomalize the amplitude between 0 and 1
-                amplitudes[j]= float(amplitude/(max_values[j] * count))
+                amplitudes[j]= round(float(amplitude/(max_values[j] * count)), 4)
+
         return amplitudes, max_values
 
 
@@ -171,10 +168,10 @@ class AudioPlayer:
         def callback_spectrum():
             while self.spectrum_pos < len(self.spectrum_amplitudes) and self.playing:
                 if not self.paused:
-                    self.spectrum_pos += 1
                     values = self.spectrum_amplitudes[self.spectrum_pos]
                     for i in range(len(values)):
-                        progress_vars[i].set(math.ceil(values[i]*100))
+                        progress_vars[i].set(round(values[i]*100, 2))
+                    self.spectrum_pos += 1
                     time.sleep(0.1)
                 else:
                     time.sleep(0.1)
