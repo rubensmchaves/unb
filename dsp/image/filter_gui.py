@@ -15,7 +15,7 @@ Callback functions
 """
 def open_file(path_label, image_label):
 	# You should not use .jpg because it compact the image and lose information.
-	image_path = filedialog.askopenfilename(filetypes=[("Image file", "*.bmp; *png")])
+	image_path = filedialog.askopenfilename(filetypes=[("Image file", "*.bmp; *.png")])
 	if image_path:
 		path_label.configure(text=image_path)
 
