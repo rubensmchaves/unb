@@ -1,5 +1,5 @@
 """
-Application to apply filters on an image.
+Application (GUI) to apply filters on an image.
 
 Libraries (> py -m pip install [library_name])
 - pillow
@@ -14,7 +14,8 @@ from PIL import Image, ImageTk
 Callback functions
 """
 def open_file(path_label, image_label):
-	image_path = filedialog.askopenfilename(filetypes=[("Image file", "*.jpg; *png")])
+	# You should not use .jpg because it compact the image and lose information.
+	image_path = filedialog.askopenfilename(filetypes=[("Image file", "*.bmp; *png")])
 	if image_path:
 		path_label.configure(text=image_path)
 
