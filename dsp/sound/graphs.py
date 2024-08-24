@@ -5,26 +5,47 @@ import matplotlib.gridspec as gridspec
 from scipy.signal import freqz
 
 
+def my_graphs(frequencias, filters):    
+    for i, (f1, f2) in enumerate(frequencias):
+        w, h = freqz(filters[i], worN=8000)
+        plt.subplot(5, 2, i + 1)
+        plt.plot((w / np.pi) * (44100 / 2), 20 * np.log10(np.abs(h)))
+        plt.title(f'{f1}-{f2} Hz')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Gain (dB)')
+        plt.ylim(-100, 5)
+        plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
 def plot_filter(filters, titles, colors, window_size):
     #print('Titles (shape):', titles.shape)
     #print('Titles:', titles)
     #print('Filters:', filters.shape)
-
+    fs = 44100
     # Create a figure
     x_axis = 'Normalized Frequency [π*rad/sample]'
     y_axis = 'Magnitude [dB]'
+    ymin, ymax = -40, 5
+    xmax = 0.2 * np.pi * fs / 2
 
     # Example data for plotting
     x = np.arange(window_size)
     for i in range(len(filters)):
         w, h = freqz(filters[i], 1.0, worN=window_size)
-        x = w / np.pi
+        x = (w / np.pi) * (fs / 2)
         y = 20 * np.log10(np.abs(h))
         plt.figure(figsize=(13, 6), dpi=100, num="Bandpass Filter Frequency Response")
         plt.title(titles[i])
         plt.xlabel(x_axis)
         plt.ylabel(y_axis)
         plt.plot(x, y, colors[i])
+        plt.ylim(ymin, ymax)
+        plt.xlim(0, xmax)
+        plt.tight_layout()
         plt.show()
 
     plt.figure(figsize=(13, 6), dpi=100, num="Bandpass Filter Frequency Response")
@@ -33,9 +54,12 @@ def plot_filter(filters, titles, colors, window_size):
     plt.ylabel(y_axis)
     for i in range(len(filters)):
         w, h = freqz(filters[i], 1.0, worN=window_size)
-        x = w / np.pi
+        x = (w / np.pi) * (fs / 2)
         y = 20 * np.log10(np.abs(h))
         plt.plot(x, y, colors[i])
+    plt.ylim(ymin, ymax)
+    plt.xlim(0, xmax)
+    plt.tight_layout()
     plt.show()
 
     subplot = [None] * len(filters)
@@ -56,6 +80,7 @@ def plot_filters(filters, titles, colors, window_size):
     fig = plt.figure(figsize=(13, 6), dpi=100, num="Bandpass Filter Frequency Response")
     fig.subplots_adjust(hspace=0.5)
 
+
     gs = gridspec.GridSpec(3, 5)  # 3 rows, 5 columns
 
     # Create subplots in specific grid locations
@@ -75,10 +100,10 @@ def plot_filters(filters, titles, colors, window_size):
     x = np.arange(window_size)
     for i in range(len(filters)):
         w, h = freqz(filters[i], 1.0, worN=window_size)
-        x = w / np.pi
+        x = (w / np.pi) * (44100 / 2)
         y = 20 * np.log10(np.abs(h))
         subplot[i].set_title(titles[i])
-        subplot[i].plot(x, y, colors[i])
+        subplot[i].plot(x, y, colors[i])        
         all_filters.plot(x, y, colors[i])
     
     subplot_filter_sum.set_title("Filters sum")

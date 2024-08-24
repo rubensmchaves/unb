@@ -26,8 +26,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from audio import AudioPlayer
 from audio import SPECTRUNS
 from graphs import plot_filters
+from graphs import plot_filter
+from graphs import my_graphs
 
 from scipy.fft import fft, fftfreq
+from scipy.signal import firwin
 
 
 """
@@ -169,27 +172,44 @@ def play_audio(btn_play, btn_pause, progress_vars):
 
 
 def onClick_Filters():
-    filters, window_size = create_filters(audio_player.framerate)
+    filter_size = 10001
+    flts, window_size = create_filters(audio_player.framerate, filter_size)
     colors = ['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
     titles = frequences
-    plot_filters(filters, frequences, colors, window_size)
+    #plot_filter(flts, frequences, colors, filter_size)
+
+    print("Filtros:\n", type(flts))
+    array = np.array(flts)
+    print("Salvando filtro...")
+    np.savetxt("meus_filtros.csv", array, delimiter=",")
+    np.savetxt(f"meus_filtros_{filter_size}.csv", array.T, delimiter=",")
+    #my_graphs(sliders_freqs, flts)
 
 
 
 """
 Functions
 """
-def create_filters(framerate):
-    window_size = 301
+def create_filters(framerate, filter_size=1001):
     for i in range(len(filters)):
-        filters[i] = np.zeros(window_size)
+        filters[i] = np.zeros(filter_size)
         lowcut = sliders_freqs[i][0]
         highcut = sliders_freqs[i][1]
-        filters[i] += bandpass_filter(lowcut, highcut, framerate, window_size)
-    return filters, window_size
+        filters[i] += bandpass_filter(lowcut, highcut, framerate, filter_size)
+    return filters, filter_size
         
 
-def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
+def bandpass_filter_v0(lowcut, highcut, fs, numtaps, verbose=False):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    cutoff = [low, high]  # Normalized cutoff frequencies (e.g., 0.2 = 20% of Nyquist freq)
+    # FIR filter design using a Hamming window
+    b = firwin(numtaps, cutoff, window='hamming', pass_zero=False)
+    return b
+
+
+def bandpass_filter_v1(lowcut, highcut, fs, numtaps, verbose=False):
     nyquist = 1 * fs
     low = lowcut / nyquist
     high = highcut / nyquist
@@ -210,6 +230,37 @@ def bandpass_filter(lowcut, highcut, fs, numtaps, verbose=False):
         print('    n. taps:', numtaps)
         print('    return(taps):', taps.shape)
     return taps
+
+
+def bandpass_filter(f1, f2, fs, numtaps=101):
+    left = f1 / (fs / 2)
+    right = f2 / (fs / 2)
+
+    # Build up the coefficients.
+    alpha = 0.5 * (numtaps - 1)
+    m = np.arange(0, numtaps) - alpha
+    h = 0
+    h += right * np.sinc(right * m)
+    h -= left * np.sinc(left * m)
+
+    # Get and apply the window function.
+    win = np.hamming(numtaps)
+    h *= win
+
+    # Now handle scaling if desired.
+    # Get the first passband.
+    #left, right = bands[0]
+    if left == 0:
+        scale_frequency = 0.0
+    elif right == 1:
+        scale_frequency = 1.0
+    else:
+        scale_frequency = 0.5 * (left + right)
+    c = np.cos(np.pi * m * scale_frequency)
+    s = np.sum(h * c)
+    h /= s
+
+    return h
 
 
 def hamming_window(M):

@@ -14,7 +14,7 @@ from pydub import AudioSegment
 
 FREQUENCES = [32, 64, 128, 256, 512, 1000, 2000, 4000, 8000, 16000]
 SPECTRUNS = [
-    (    0,    48), # 32Hz 
+    (   10,    48), # 32Hz 
     (   48,    96), # 64Hz
     (   96,   192), # 128Hz
     (  192,   384), # 256Hz
@@ -116,7 +116,7 @@ class AudioPlayer:
             count = 0
             max_value = 0
             for i in range(start, N):
-                if xf[i] >= SPECTRUNS[j][0] and xf[i] < SPECTRUNS[j][1]:
+                if xf[i] < SPECTRUNS[j][1]:
                     if yf[i] > max_value:
                         max_value = yf[i]
                     amplitude += yf[i]
@@ -126,13 +126,13 @@ class AudioPlayer:
                     break
 
             if compute_max_values:
-                max_values[j] = round(float(max_value), 1)
+                max_values[j] = float(max_value)
 
             if count == 0 or max_values[j] == 0:
                 amplitudes[j] = 0
             else:
                 # nomalize the amplitude between 0 and 1
-                amplitudes[j]= round(float(amplitude/(max_values[j] * count)), 4)
+                amplitudes[j]= float(amplitude/(max_values[j] * count))
 
         return amplitudes, max_values
 
