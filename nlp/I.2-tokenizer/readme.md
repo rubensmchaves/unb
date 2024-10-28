@@ -1,0 +1,1 @@
+This code was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called "[Let's build the GPT Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)"
