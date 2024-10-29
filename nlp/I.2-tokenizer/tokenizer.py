@@ -105,13 +105,16 @@ def tokenize(char_codes: List[int], vocab_size: int, encoding_size=256, verbose=
     num_merges = vocab_size - encoding_size
     merges = {} # {int, int} -> int
     for i in range(num_merges):
-        freq_distribution = get_frequencies(codes)
-        pair = max(freq_distribution, key=freq_distribution.get)
-        new_code = encoding_size + i
-        if verbose:
-            print(f"merging {pair} into new token {new_code}")
-        codes = merge(codes, pair, new_code)
-        merges[pair] = new_code
+        if len(codes) > 1:
+            freq_distribution = get_frequencies(codes)
+            pair = max(freq_distribution, key=freq_distribution.get)
+            new_code = encoding_size + i
+            if verbose:
+                print(f"merging {pair} into new token {new_code}")
+            codes = merge(codes, pair, new_code)
+            merges[pair] = new_code
+        else:
+            break
 
     if verbose:
         print("tokens length:", len(char_codes))
@@ -157,10 +160,12 @@ def detokenize(token_codes, encoding_mapping, encoding_size=256):
 
 if __name__ == "__main__":
     # https://pt.wikipedia.org/wiki/Jesus
-    wiki_text = "Jesus, também chamado Jesus de Nazaré (n. 7–2 a.C. – m. 30–33 d.C.) foi um pregador e líder religioso judeu do primeiro século.[11] É a figura central do cristianismo e aquele que os ensinamentos de maior parte das denominações cristãs, além dos judeus messiânicos, consideram ser o Filho de Deus. O cristianismo e o judaísmo messiânico consideram Jesus como o Messias aguardado no Antigo Testamento e referem-se a ele como Jesus Cristo, um nome também usado fora do contexto cristão."
+    # wiki_text = "Jesus, também chamado Jesus de Nazaré (n. 7–2 a.C. – m. 30–33 d.C.) foi um pregador e líder religioso judeu do primeiro século.[11] É a figura central do cristianismo e aquele que os ensinamentos de maior parte das denominações cristãs, além dos judeus messiânicos, consideram ser o Filho de Deus. O cristianismo e o judaísmo messiânico consideram Jesus como o Messias aguardado no Antigo Testamento e referem-se a ele como Jesus Cristo, um nome também usado fora do contexto cristão."
+    wiki_text = "ab"
     tkns = get_tokens(wiki_text, True)
     #stats = get_frequencies(tkns)
     #print(stats)
+    print("tamanho tkns:", len(tkns))
     t, m = tokenize(vocab_size=276, encoding_size=256, char_codes=tkns, verbose=True)
     print(t)
     print(m)
