@@ -125,6 +125,43 @@ def tokenize(char_codes: List[int], vocab_size: int, encoding_size=256, verbose=
     return codes, merges
 
 
+def get_vocabulary(encoding_mapping, encoding_size=256):
+    """
+    Generates a vocabulary dictionary that maps encoding indices to byte sequences.
+
+    This function constructs a vocabulary dictionary, where each index (up to `encoding_size`)
+    initially maps to its corresponding byte representation. For each pair in the `encoding_mapping`,
+    the function merges two byte sequences to create new tokens, expanding the vocabulary.
+
+    Parameters:
+    ----------
+    encoding_mapping : dict
+        A dictionary where keys are tuples (p0, p1) representing pairs of existing indices
+        in the vocabulary, and values are new indices assigned to merged byte sequences.
+
+    encoding_size : int, optional
+        The initial size of the encoding, representing the number of unique byte values.
+        Default is 256, covering the standard byte range.
+
+    Returns:
+    -------
+    dict
+        A vocabulary dictionary where each key is an index, and each value is a byte sequence
+        (of type `bytes`) representing the token mapped to that index.
+
+    Example:
+    --------
+    >>> encoding_mapping = {(65, 66): 256, (256, 67): 257}
+    >>> vocab = get_vocabulary(encoding_mapping)
+    >>> vocab[256]  # Corresponds to the merged bytes for indices 65 and 66
+    b'AB'
+    """
+    vocab = {idx: bytes([idx]) for idx in range(encoding_size)}
+    for (p0, p1), idx in encoding_mapping.items():
+        vocab[idx] = vocab[p0] + vocab[p1]
+    return vocab
+
+
 def detokenize(token_codes, encoding_mapping, encoding_size=256):
     """
     Decodes a list of token codes into a UTF-8 string using a predefined vocabulary and encoding mapping.
@@ -149,10 +186,7 @@ def detokenize(token_codes, encoding_mapping, encoding_size=256):
         - The token codes are combined into a single byte string, which is then decoded to UTF-8 with error handling for
           invalid sequences.
     """
-    vocab = {idx: bytes([idx]) for idx in range(encoding_size)}
-    for (p0, p1), idx in encoding_mapping.items():
-        vocab[idx] = vocab[p0] + vocab[p1]
-    # given codes (list of integers), return Python string
+    vocab = get_vocabulary(encoding_mapping, encoding_size)
     tokens = b"".join(vocab[idx] for idx in token_codes)
     text = tokens.decode("utf-8", errors="replace")
     return text
@@ -160,19 +194,19 @@ def detokenize(token_codes, encoding_mapping, encoding_size=256):
 
 if __name__ == "__main__":
     # https://pt.wikipedia.org/wiki/Jesus
-    # wiki_text = "Jesus, também chamado Jesus de Nazaré (n. 7–2 a.C. – m. 30–33 d.C.) foi um pregador e líder religioso judeu do primeiro século.[11] É a figura central do cristianismo e aquele que os ensinamentos de maior parte das denominações cristãs, além dos judeus messiânicos, consideram ser o Filho de Deus. O cristianismo e o judaísmo messiânico consideram Jesus como o Messias aguardado no Antigo Testamento e referem-se a ele como Jesus Cristo, um nome também usado fora do contexto cristão."
-    wiki_text = "ab"
-    tkns = get_tokens(wiki_text, True)
-    #stats = get_frequencies(tkns)
-    #print(stats)
-    print("tamanho tkns:", len(tkns))
-    t, m = tokenize(vocab_size=276, encoding_size=256, char_codes=tkns, verbose=True)
+    wiki_text = "Jesus, também chamado Jesus de Nazaré (n. 7–2 a.C. – m. 30–33 d.C.) foi um pregador e líder religioso judeu do primeiro século.[11] É a figura central do cristianismo e aquele que os ensinamentos de maior parte das denominações cristãs, além dos judeus messiânicos, consideram ser o Filho de Deus. O cristianismo e o judaísmo messiânico consideram Jesus como o Messias aguardado no Antigo Testamento e referem-se a ele como Jesus Cristo, um nome também usado fora do contexto cristão."
+    tkns = get_tokens(wiki_text, False)
+    t, m = tokenize(vocab_size=300, char_codes=tkns, verbose=True)
     print(t)
     print(m)
-    text2 = detokenize(t, m, 256)
-    print(text2)
+
+    #  Show vocabulary
+    vocab = get_vocabulary(m)
+    for value in vocab.values():
+        print(f"'{value.decode('utf-8', errors='replace')}'")
 
     #testing (verification)
+    text2 = detokenize(t, m, 256)
     if wiki_text == text2:
         print(True)
     else:
