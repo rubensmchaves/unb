@@ -106,6 +106,7 @@ def tokenize(char_codes: List[int], vocab_size: int, encoding_size=256, verbose=
     merges = {} # {int, int} -> int
     for i in range(num_merges):
         if len(codes) > 1:
+            # TODO: At this point the code could be improved by avoid generating new frequencies to the whole vector, it should compute the frequency only for the elements beside the merged elements.
             freq_distribution = get_frequencies(codes)
             pair = max(freq_distribution, key=freq_distribution.get)
             new_code = encoding_size + i
