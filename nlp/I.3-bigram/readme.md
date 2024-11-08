@@ -6,4 +6,4 @@
 [Python Library for Tokenizing Text](https://www.datacamp.com/tutorial/tiktoken-library-python)
 
 ### Github
-[Makemore](https://github.com/karpathy/makemore)
+[Makemore](https://github.com/karpathy/makemore) - Andrej Karpathy
