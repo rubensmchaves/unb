@@ -1,4 +1,4 @@
-This tokenizer is part of the assignment described [here](https://github.com/thiagodepaulo/nlp/blob/main/aula_1/exercicio1.md). This code was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called "[Let's build the GPT Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)".
+This tokenizer is part of the assignment described [here](https://github.com/thiagodepaulo/nlp/blob/main/aula_1/exercicio1.md). The code was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called "[Let's build the GPT Tokenizer](https://www.youtube.com/watch?v=zduSFxRajkE)".
 
 On this video he cites some interesting articles and resources:
 * Articles
