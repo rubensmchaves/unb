@@ -2,8 +2,10 @@
 ### Video
 [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) - Andrej Karpathy
 
-### Blog
+### Text
 [Python Library for Tokenizing Text](https://www.datacamp.com/tutorial/tiktoken-library-python)
+
+[How to count tokens with Tiktoken](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken) - Ted Sanders
 
 ### Github
 [Makemore](https://github.com/karpathy/makemore)
