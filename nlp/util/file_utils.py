@@ -20,7 +20,7 @@ def get_file_names(folder_name):
     else:
         raise ValueError(f"The provided folder name '{folder_name}' is not a valid directory.")
     
-    return file_names
+    return sorted(file_names)
 
 
 def train_test_split(filenames: List[str], test_size: float) -> Tuple[List[str], List[str]]:
@@ -29,27 +29,28 @@ def train_test_split(filenames: List[str], test_size: float) -> Tuple[List[str],
         raise ValueError("test_size should be a float between 0 and 1.")
     
     # Shuffle the list of filenames for random splitting
-    random.shuffle(filenames)
+    files = filenames.copy()
+    random.shuffle(files)
     
     # Calculate the size of the test set
-    test_set_size = int(len(filenames) * test_size)
+    test_set_size = int(len(files) * test_size)
     
-    # Split the filenames into test and train sets
-    filenames_test = filenames[:test_set_size]
-    filenames_train = filenames[test_set_size:]
+    # Split the 'files' into test and train sets
+    filenames_test = files[:test_set_size]
+    filenames_train = files[test_set_size:]
     
     return filenames_train, filenames_test
 
 
 if __name__ == '__main__':
+    n_samples = 5
     print("Test function 'get_file_names':")
-    folder = "../I.3-bigram/corpus"
+    folder = "../corpus"
     files = get_file_names(folder)
-    print(files[:5])  # Outputs the list of filenames in the specified folder
-    
-    print("")
+    print(files[:n_samples], "...", "\n")  # Outputs the list of filenames in the specified folder
     
     print("Test function 'train_test_split':")
-    train, test = train_test_split(files, test_size=0.3)
-    print("Train Set (samples):", train[:5], f"(of {len(train)})")
-    print("Test Set (samples):", test[:5], f"(of {len(test)})")
+    train_set, test_set = train_test_split(files, test_size=0.3)
+    print(f"Files set (samples): {files[:n_samples]}... ({n_samples} of {len(files)})")
+    print(f"Train Set (samples): {train_set[:n_samples]}... ({n_samples} of {len(train_set)})")
+    print(f"Test Set (samples): {test_set[:n_samples]}... ({n_samples} of {len(test_set)})")    
