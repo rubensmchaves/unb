@@ -113,31 +113,39 @@ def decode_bigrams(encoded_bigrams: List[Set[int]]) -> List[Set[str]]:
         return None
 
 
-def compute_perplexity(text, table_probabilities, stoi_mapping):
-    if text:
-        txt = end_token + text + end_token
-        encoded_txt = encode(txt)
-        encoded_bigrams = []
-        for tk1, tk2 in zip(encoded_txt, encoded_txt[1:]):
-            b = (tk1, tk2)
-            encoded_bigrams.append(b)  
-        bigrams = decode_bigrams(encoded_bigrams)
+def compute_perplexity(encoded_text: List[str], table_probabilities, stoi_mapping):
+    if encoded_text:
+        N = len(encoded_text)
         log_prob_sum = 0.0
-        for bigram in bigrams:
-            b = list(bigram)
-            if (b[0] in stoi_mapping and b[1] in stoi_mapping):
-                i = stoi_mapping[b[0]]
-                j = stoi_mapping[b[1]]
+        for i in range(1, N):
+            tk0 = encoded_text[i-1]
+            tk1 = encoded_text[i]
+            if (tk0 in stoi_mapping and tk1 in stoi_mapping):
+                i = stoi_mapping[tk0]
+                j = stoi_mapping[tk1]
                 prob = table_probabilities[i, j]
-                print(f"('{b[0]}', '{b[1]}'): {prob:.4f}")
+                print(f"('{tk0}', '{tk1}'): {prob:.4f}")
             else:
                 prob = 1e-10
-                print(f"('{b[0]}', '{b[1]}'): 1e-10")
+                print(f"('{tk0}', '{tk1}'): 1e-10")
             log_prob_sum += math.log(prob)
-        return math.exp(-log_prob_sum / len(bigrams))
+        return math.exp(-log_prob_sum / N)
     else:
         return None
 
+
+def text_generation(last_token, table_probabilities, stoi_mapping, itos_mapping):
+    seed = torch.Generator().manual_seed(2147483647) # Tensor genetator
+    new_text = ''
+    idx = stoi_mapping[last_token]
+    while True: #True:
+        p = table_probabilities[idx]
+        idx = torch.multinomial(p, num_samples=1, replacement=True, generator=seed).item()
+        new_text += itos_mapping[idx]
+        if idx == 0:
+            break
+    return new_text
+    
 
 def main():
     # Get file names from a folder ('corpus') and separate it into traning set and test set.
@@ -243,41 +251,26 @@ def main():
     # Compute the table of probabilities
     table_probabilities = (N+1).float()
     table_probabilities /= table_probabilities.sum(1, keepdim=True)
-    print("Row probability:", table_probabilities[1].sum().item())
 
     # Compute preplexity
-    perplexity = compute_perplexity("Vicente e Ventosa se conheceram no município de Elvas", table_probabilities, stoi)
-    # perplexity = compute_perplexity("Eu me chamo Rubens Marques Chaves e tenho 44 anos de idade", table_probabilities, stoi)
+    #text = "Vicente e Ventosa se conheceram no município de Elvas"
+    text = "Eu me chamo Rubens Marques Chaves e tenho 44 anos de idade"
+    encoded_text = decode_single_token(encode(text))
+    perplexity = compute_perplexity(encoded_text, table_probabilities, stoi)
     print(f"Perplexity: {perplexity}")
 
-    # Test text generation...
+    # Testing text generation...
     print("\nTest text generation...")
     text_frag = "São Vicente e Ventosa é uma freguesia"
     encoded_frag = encode(text_frag)
     frag_tokens = decode_single_token(encoded_frag)    
-    idx = stoi[frag_tokens[-1]]
-    print(f"Fragmento de texto: '{text_frag}'")
+    last_token = frag_tokens[-1]
     print(f"Tokens: {frag_tokens}")
-    print(f"Last token: '{itos[idx]}'")
-
-    seed = torch.Generator().manual_seed(2147483647) # Tensor genetator
-    new_text = ''
-    while False: #True:
-        p = N[idx].float()
-        p = p / p.sum()
-        idx = torch.multinomial(p, num_samples=1, replacement=True, generator=seed).item()
-        new_text += itos[idx]
-        if idx == 0:
-            break
+    print(f"Last token: '{last_token}'")
+    print(f"Text fragment: {text_frag} (...)")
+    new_text = text_generation(last_token, table_probabilities, stoi, itos)
+    print("Text completion: \n(...)", new_text)
     
-    #print(new_text)
-    
-    #20:55 - fala sobre a possibilidade de uma linha ter apenas zeros na tabela (matriz) de frequência
-    
-    #22:33 - simplifica o caracter de final de palavra (text) 
-    
-    #33:02
-
 
 if __name__ == '__main__':
     main()
