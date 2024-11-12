@@ -63,6 +63,16 @@ class Bigram:
 
 
 def log(*messages, verbose=True):
+    """
+    Logs messages to the console if verbose is True.
+
+    Parameters:
+    - messages (str): Messages to be logged.
+    - verbose (bool): Flag to control logging. Defaults to True.
+
+    Returns:
+    - None
+    """
     if verbose:
         message = ''
         for msg in messages:
@@ -71,18 +81,54 @@ def log(*messages, verbose=True):
 
 
 def encode(text) -> List[int]:
+    """
+    Encodes a given text into a list of token IDs.
+
+    Parameters:
+    - text (str): The text to encode.
+
+    Returns:
+    - List[int]: A list of token IDs representing the text.
+    """
     return tokenizer.encode(text, allowed_special={end_token})
 
 
 def decode(tokens: List[int]) -> List[str]:
+    """
+    Decodes a list of token IDs into text.
+
+    Parameters:
+    - tokens (List[int]): The list of token IDs to decode.
+
+    Returns:
+    - List[str]: The decoded text.
+    """
     return tokenizer.decode(tokens)
 
 
 def decode_single_token(tokens: List[int]) -> List[str]:
+    """
+    Decodes each token in a list of tokens individually.
+
+    Parameters:
+    - tokens (List[int]): A list of token IDs to decode.
+
+    Returns:
+    - List[str]: A list of decoded single tokens as strings.
+    """
     return [decode([tk]) for tk in tokens]
 
 
 def compute_bigram_frequency(encoded_txt):
+    """
+    Computes the frequency of each bigram in the encoded text.
+
+    Parameters:
+    - encoded_txt (List[int]): A list of token IDs representing encoded text.
+
+    Returns:
+    - dict: A dictionary with bigram tuples as keys and their frequencies as values.
+    """
     for tk1, tk2 in zip(encoded_txt, encoded_txt[1:]):
         b = (tk1, tk2)
         bigrams_dict[b] = bigrams_dict.get(b, 0) + 1  
@@ -90,6 +136,15 @@ def compute_bigram_frequency(encoded_txt):
 
 
 def decode_bigram_freq(bigrams_dict):
+    """
+    Decodes each bigram in a frequency dictionary to text.
+
+    Parameters:
+    - bigrams_dict (dict): A dictionary with bigram tuples as keys and their frequencies as values.
+
+    Returns:
+    - dict: A dictionary with decoded bigrams as keys and their frequencies as values, or None if the input dictionary is empty.
+    """
     if len(bigrams_dict) > 0:
         decode_bigrams_dict = {}
         for key, value in bigrams_dict.items():
@@ -101,6 +156,15 @@ def decode_bigram_freq(bigrams_dict):
 
 
 def decode_bigram(encoded_bigram: Set[int]) -> Set[str]:
+    """
+    Decodes a single encoded bigram to text.
+
+    Parameters:
+    - encoded_bigram (Set[int]): A set containing two token IDs representing a bigram.
+
+    Returns:
+    - Set[str]: A tuple of two decoded tokens as strings, or None if the input is empty.
+    """
     if encoded_bigram:
         bigrams = list(encoded_bigram)
         b1 = decode([bigrams[0]])
@@ -111,6 +175,15 @@ def decode_bigram(encoded_bigram: Set[int]) -> Set[str]:
 
 
 def decode_bigrams(encoded_bigrams: List[Set[int]]) -> List[Set[str]]:
+    """
+    Decodes a list of encoded bigrams to text.
+
+    Parameters:
+    - encoded_bigrams (List[Set[int]]): A list of sets containing token IDs representing bigrams.
+
+    Returns:
+    - List[Set[str]]: A list of tuples with decoded bigrams as strings, or None if the input list is empty.
+    """
     if len(encoded_bigrams) > 0:
         decode_bigrams_list = []
         for b in encoded_bigrams:
@@ -121,6 +194,17 @@ def decode_bigrams(encoded_bigrams: List[Set[int]]) -> List[Set[str]]:
 
 
 def compute_perplexity(encoded_text: List[str], table_probabilities, stoi_mapping):
+    """
+    Computes the perplexity of a text using bigram probabilities.
+
+    Parameters:
+    - encoded_text (List[str]): A list of tokens representing the encoded text.
+    - table_probabilities (2D array): A 2D array representing the bigram probabilities.
+    - stoi_mapping (dict): A dictionary mapping tokens to their indices.
+
+    Returns:
+    - float: The perplexity of the encoded text, or None if the input is empty.
+    """
     if encoded_text:
         N = len(encoded_text)
         log_prob_sum = 0.0
@@ -142,6 +226,18 @@ def compute_perplexity(encoded_text: List[str], table_probabilities, stoi_mappin
 
 
 def text_generation(last_token, table_probabilities, stoi_mapping, itos_mapping):
+    """
+    Generates text using bigram probabilities starting from a given token.
+
+    Parameters:
+    - last_token (str): The initial token to start generation.
+    - table_probabilities (2D array): A 2D array representing the bigram probabilities.
+    - stoi_mapping (dict): A dictionary mapping tokens to their indices.
+    - itos_mapping (dict): A dictionary mapping indices to their tokens.
+
+    Returns:
+    - str: The generated text.
+    """
     seed = torch.Generator().manual_seed(2147483647) # Tensor genetator
     new_text = ''
     idx = stoi_mapping[last_token]
