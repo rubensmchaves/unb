@@ -1,6 +1,7 @@
 import tiktoken
 import json
 import torch
+import math
 
 from typing import List
 from typing import Set
@@ -92,9 +93,9 @@ def decode_bigram_freq(bigrams_dict):
         return None
 
 
-def decode_bigram(bigram_tokens: Set[int]) -> Set[str]:
-    if bigram_tokens:
-        bigrams = list(bigram_tokens)
+def decode_bigram(encoded_bigram: Set[int]) -> Set[str]:
+    if encoded_bigram:
+        bigrams = list(encoded_bigram)
         b1 = decode([bigrams[0]])
         b2 = decode([bigrams[1]])
         return (b1, b2)
@@ -102,12 +103,38 @@ def decode_bigram(bigram_tokens: Set[int]) -> Set[str]:
         return None
 
 
-def decode_bigrams(bigram_tokens: List[Set[int]]) -> List[Set[str]]:
-    if len(bigram_tokens) > 0:
+def decode_bigrams(encoded_bigrams: List[Set[int]]) -> List[Set[str]]:
+    if len(encoded_bigrams) > 0:
         decode_bigrams_list = []
-        for b in bigram_tokens:
+        for b in encoded_bigrams:
             decode_bigrams_list.append(decode_bigram(b))
         return decode_bigrams_list
+    else:
+        return None
+
+
+def compute_perplexity(text, table_probabilities, stoi_mapping):
+    if text:
+        txt = end_token + text + end_token
+        encoded_txt = encode(txt)
+        encoded_bigrams = []
+        for tk1, tk2 in zip(encoded_txt, encoded_txt[1:]):
+            b = (tk1, tk2)
+            encoded_bigrams.append(b)  
+        bigrams = decode_bigrams(encoded_bigrams)
+        log_prob_sum = 0.0
+        for bigram in bigrams:
+            b = list(bigram)
+            if (b[0] in stoi_mapping and b[1] in stoi_mapping):
+                i = stoi_mapping[b[0]]
+                j = stoi_mapping[b[1]]
+                prob = table_probabilities[i, j]
+                print(f"('{b[0]}', '{b[1]}'): {prob:.4f}")
+            else:
+                prob = 1e-10
+                print(f"('{b[0]}', '{b[1]}'): 1e-10")
+            log_prob_sum += math.log(prob)
+        return math.exp(-log_prob_sum / len(bigrams))
     else:
         return None
 
@@ -124,7 +151,7 @@ def main():
     
     # Load files and store its content ('text' attribute) into a list of texts
     texts = []
-    for filename in train_set:  # TODO: Substituir 'file_names' por 'train_set'
+    for filename in file_names[:1]:  # TODO: Substituir 'file_names' por 'train_set'
         with open(f"{corpus_folder}/{filename}", "r", encoding='utf-8') as file:
             print(f"loading... ({filename})")
             data = json.load(file);
@@ -213,15 +240,17 @@ def main():
     print(f"N[{stoi[bigram_tk_A]}, {stoi[bigram_tk_B]}] =", N[stoi[bigram_tk_A], stoi[bigram_tk_B]].item(), "\n")
     # In minute 21 it shows the matrix using matplotlib
 
-    # Generate the probability matrix
-    print(N[0].shape)
-    p = N[0].float()
-    print(p[:20])
-    print(f"Sum() = {p.sum()}")
-    p = p / p.sum()
-    print(p[:20])    
-    
-    
+    # Compute the table of probabilities
+    table_probabilities = (N+1).float()
+    table_probabilities /= table_probabilities.sum(1, keepdim=True)
+    print("Row probability:", table_probabilities[1].sum().item())
+
+    # Compute preplexity
+    perplexity = compute_perplexity("Vicente e Ventosa se conheceram no município de Elvas", table_probabilities, stoi)
+    # perplexity = compute_perplexity("Eu me chamo Rubens Marques Chaves e tenho 44 anos de idade", table_probabilities, stoi)
+    print(f"Perplexity: {perplexity}")
+
+    # Test text generation...
     print("\nTest text generation...")
     text_frag = "São Vicente e Ventosa é uma freguesia"
     encoded_frag = encode(text_frag)
@@ -231,10 +260,9 @@ def main():
     print(f"Tokens: {frag_tokens}")
     print(f"Last token: '{itos[idx]}'")
 
-    # Text generation.
     seed = torch.Generator().manual_seed(2147483647) # Tensor genetator
     new_text = ''
-    while True:
+    while False: #True:
         p = N[idx].float()
         p = p / p.sum()
         idx = torch.multinomial(p, num_samples=1, replacement=True, generator=seed).item()
@@ -242,7 +270,7 @@ def main():
         if idx == 0:
             break
     
-    print(new_text)
+    #print(new_text)
     
     #20:55 - fala sobre a possibilidade de uma linha ter apenas zeros na tabela (matriz) de frequência
     
@@ -253,3 +281,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
