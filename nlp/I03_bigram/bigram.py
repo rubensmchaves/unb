@@ -62,6 +62,13 @@ class Bigram:
             self.table_freq[r, c] += 1
 
 
+def log(*messages, verbose=True):
+    if verbose:
+        message = ''
+        for msg in messages:
+            message = ' ' + msg
+        print(message)
+
 
 def encode(text) -> List[int]:
     return tokenizer.encode(text, allowed_special={end_token})
@@ -124,10 +131,10 @@ def compute_perplexity(encoded_text: List[str], table_probabilities, stoi_mappin
                 i = stoi_mapping[tk0]
                 j = stoi_mapping[tk1]
                 prob = table_probabilities[i, j]
-                print(f"('{tk0}', '{tk1}'): {prob:.4f}")
+                log(f"('{tk0}', '{tk1}'): {prob:.4f}")
             else:
                 prob = 1e-10
-                print(f"('{tk0}', '{tk1}'): 1e-10")
+                log(f"('{tk0}', '{tk1}'): 1e-10")
             log_prob_sum += math.log(prob)
         return math.exp(-log_prob_sum / N)
     else:
@@ -150,18 +157,18 @@ def text_generation(last_token, table_probabilities, stoi_mapping, itos_mapping)
 def main():
     # Get file names from a folder ('corpus') and separate it into traning set and test set.
     file_names = sorted(get_file_names(corpus_folder))
-    print("Test function 'train_test_split':")
+    log("Test function 'train_test_split':")
     train_set, test_set = train_test_split(file_names, test_size=0.2)
     n_samples = 5
-    print(f"Files set (samples): {file_names[:n_samples]}... ({n_samples} of {len(file_names)})")
-    print(f"Train Set (samples): {train_set[:n_samples]}... ({n_samples} of {len(train_set)})")
-    print(f"Test Set (samples): {test_set[:n_samples]}... ({n_samples} of {len(test_set)})")    
+    log(f"Files set (samples): {file_names[:n_samples]}... ({n_samples} of {len(file_names)})")
+    log(f"Train Set (samples): {train_set[:n_samples]}... ({n_samples} of {len(train_set)})")
+    log(f"Test Set (samples): {test_set[:n_samples]}... ({n_samples} of {len(test_set)})")    
     
     # Load files and store its content ('text' attribute) into a list of texts
     texts = []
     for filename in file_names[:1]:  # TODO: Substituir 'file_names' por 'train_set'
         with open(f"{corpus_folder}/{filename}", "r", encoding='utf-8') as file:
-            print(f"loading... ({filename})")
+            log(f"loading... ({filename})")
             data = json.load(file);
             text = data.get("text", "")
             texts.append(end_token + text + end_token)  # Append text and add space
@@ -169,12 +176,12 @@ def main():
 
     # Total of tokens
     cod_tokens = encode(texts[0])
-    print("Total of tokens:", len(cod_tokens))  
+    log(f"Total of tokens: {len(cod_tokens)}")  
     # Show text encode and decode
-    print(texts[0][:80])
-    print(cod_tokens[:20], '...')
-    print(decode_single_token(cod_tokens)[:10], '...')
-    print(decode(cod_tokens[:20]), '...', '\n')
+    log(texts[0][:80])
+    log(f"{cod_tokens[:20]} ...")
+    log(f"{decode_single_token(cod_tokens)[:10]} ...")
+    log(f"decode(cod_tokens[:20]) ...\n")
 
     # Create a set of bigrams_dict and its frequencies
     texts_tokens = []
@@ -190,50 +197,50 @@ def main():
         texts_tokens.append(txt_tokens)
 
     # Show bigram
-    print("Vocalubary size:", len(vocabulary))
-    print('Bigrams:')
-    print(list(bigrams_dict.keys())[:5], '...')  
+    log(f"Vocalubary size: {len(vocabulary)}")
+    log('Bigrams:')
+    log(f"{list(bigrams_dict.keys())[:5]} ...")  
     decoded_bigrams_list = decode_bigrams(list(bigrams_dict.keys()))
-    print(list(decoded_bigrams_list)[:5], '...')
+    log(f"{list(decoded_bigrams_list)[:5]} ...")
 
     # Show part of the bigrams       
-    print('Bigrams frenquecies:')  
+    log('Bigrams frenquecies:')  
     bigram_list = list(bigrams_dict.items())
-    print(bigram_list[:5], '...')   
+    log(f"{bigram_list[:5]} ...")
     tkn_freq = decode_bigram_freq(bigrams_dict)
     tkn_freq = list(tkn_freq.items())
-    print(tkn_freq[:5], '...')   
+    log(f"{tkn_freq[:5]} ...")   
 
     # Sorted bigrams by frequency
-    print('Sorted bigrams frenquecies (descending):')  
+    log('Sorted bigrams frenquecies (descending):')  
     bigram_list = sorted(bigrams_dict.items(), key = lambda value: value[1], reverse=True)
-    print(bigram_list[:5], '...')   
+    log(f"{bigram_list[:5]} ...")   
     tkn_freq = decode_bigram_freq(bigrams_dict)
     tkn_freq = sorted(tkn_freq.items(), key = lambda value: value[1], reverse=True)
-    print(tkn_freq[:5], '...', '\n')   
+    log(f"{tkn_freq[:5]} ...\n")   
     bigram_tk_A = tkn_freq[0][0][0]
     bigram_tk_B = tkn_freq[0][0][1]
 
     # Maps it token (string) to a integer (sequencialy). For simplification we make the 'end_token' be the first element of the dictionaries ('stoi' and 'itos')
     sort_voc = sorted(vocabulary)
     sort_voc.remove(end_token)
-    print(f"Is '{end_token}' into the Vocabulary? {end_token in sort_voc} ({sort_voc[:5]} ...)")
+    log(f"Is '{end_token}' into the Vocabulary? {end_token in sort_voc} ({sort_voc[:5]} ...)")
     sort_voc = [end_token] + sort_voc
-    print(f"Is '{end_token}' into the Vocabulary? {end_token in sort_voc} ({sort_voc[:5]} ...)")
+    log(f"Is '{end_token}' into the Vocabulary? {end_token in sort_voc} ({sort_voc[:5]} ...)")
     stoi = {s:i for i, s in enumerate(sort_voc)}  # stoi - string (word) to integer    
     itos = {i:s for s, i in stoi.items()}
-    print("Dicionary: 'stoi'")
-    print(list(stoi.items())[:10], '...')
-    print(f"most frequency bigram (index): ({stoi[bigram_tk_A]}, {stoi[bigram_tk_B]})")
-    print("Dicionary: 'itos'")
-    print(list(itos.items())[:10], '...')
-    print(f"most frequency bigram (str): ('{itos[stoi[bigram_tk_A]]}', '{itos[stoi[bigram_tk_B]]}')")
-    print(f"Vocabulary size: {len(sort_voc)}")
-    print(f"stoi: {len(stoi)}")
-    print(f"itos: {len(itos)}", "\n")
+    log("Dicionary: 'stoi'")
+    log(f"list(stoi.items())[:10] ...")
+    log(f"most frequency bigram (index): ({stoi[bigram_tk_A]}, {stoi[bigram_tk_B]})")
+    log("Dicionary: 'itos'")
+    log(f"{list(itos.items())[:10]} ...")
+    log(f"most frequency bigram (str): ('{itos[stoi[bigram_tk_A]]}', '{itos[stoi[bigram_tk_B]]}')")
+    log(f"Vocabulary size: {len(sort_voc)}")
+    log(f"stoi: {len(stoi)}")
+    log(f"itos: {len(itos)}", "\n")
     
     # Create table of frequencies for bigrams
-    print("Frequency table:")
+    log("Frequency table:")
     total_tokens = len(stoi)
     N = torch.zeros((total_tokens, total_tokens), dtype=torch.int32)
     for text_tkn in texts_tokens:
@@ -242,10 +249,10 @@ def main():
           c = stoi[tk2] # col index
           N[r, c] += 1  
     
-    print(N[0:15,0:15], "...")
-    print(f"'{bigram_tk_A}' = ", stoi[bigram_tk_A])
-    print(f"'{bigram_tk_B}' = ", stoi[bigram_tk_B])
-    print(f"N[{stoi[bigram_tk_A]}, {stoi[bigram_tk_B]}] =", N[stoi[bigram_tk_A], stoi[bigram_tk_B]].item(), "\n")
+    log(f"N[0:15,0:15] ...")
+    log(f"'{bigram_tk_A}' = {stoi[bigram_tk_A]}")
+    log(f"'{bigram_tk_B}' = {stoi[bigram_tk_B]}")
+    log(f"N[{stoi[bigram_tk_A]}, {stoi[bigram_tk_B]}] = {N[stoi[bigram_tk_A], stoi[bigram_tk_B]].item()} \n")
     # In minute 21 it shows the matrix using matplotlib
 
     # Compute the table of probabilities
@@ -257,19 +264,19 @@ def main():
     text = "Eu me chamo Rubens Marques Chaves e tenho 44 anos de idade"
     encoded_text = decode_single_token(encode(text))
     perplexity = compute_perplexity(encoded_text, table_probabilities, stoi)
-    print(f"Perplexity: {perplexity}")
+    log(f"Perplexity: {perplexity}")
 
     # Testing text generation...
-    print("\nTest text generation...")
+    log("\nTest text generation...")
     text_frag = "São Vicente e Ventosa é uma freguesia"
     encoded_frag = encode(text_frag)
     frag_tokens = decode_single_token(encoded_frag)    
     last_token = frag_tokens[-1]
-    print(f"Tokens: {frag_tokens}")
-    print(f"Last token: '{last_token}'")
-    print(f"Text fragment: {text_frag} (...)")
+    log(f"Tokens: {frag_tokens}")
+    log(f"Last token: '{last_token}'")
+    log(f"Text fragment: {text_frag} (...)")
     new_text = text_generation(last_token, table_probabilities, stoi, itos)
-    print("Text completion: \n(...)", new_text)
+    log("Text completion: \n(...)", new_text)
     
 
 if __name__ == '__main__':
