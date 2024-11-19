@@ -1,3 +1,22 @@
+This bigram was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called "[The spelled-out intro to language modeling: building makemore]([https://www.youtube.com/watch?v=zduSFxRajkE](https://www.youtube.com/watch?v=PaCmpygFfXo))".
+
+## Running
+To run this example you have to:
+1. Clone this project: 
+   ```bash
+   git clone https://github.com/rubensmchaves/unb.git
+   ```
+2. Install the required libraries:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Create a folder <code>corpus</code> into <code>nlp</code> folder;
+5. Unzip the file [corpus.zip](https://github.com/rubensmchaves/unb/blob/main/nlp/corpus.zip) into the folder <code>nlp\corpus</code> (just created);
+6. In the shell, at the folder <code>nlp</code>, execute:
+   ```bash
+   py -m I03_bigram.bigram
+   ```
+   
 ## References
 ### Video
 [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) - Andrej Karpathy
