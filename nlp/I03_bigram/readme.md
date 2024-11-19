@@ -1,6 +1,7 @@
 ## References
 ### Video
 [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) - Andrej Karpathy
+[Evaluation and Perplexity](https://www.youtube.com/watch?v=B_2bntDYano) - Daniel Jurafsky
 
 ### Text
 [Python Library for Tokenizing Text](https://www.datacamp.com/tutorial/tiktoken-library-python)
