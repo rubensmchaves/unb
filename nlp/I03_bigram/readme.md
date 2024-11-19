@@ -1,4 +1,4 @@
-This bigram was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called "[The spelled-out intro to language modeling: building makemore]([https://www.youtube.com/watch?v=zduSFxRajkE](https://www.youtube.com/watch?v=PaCmpygFfXo))".
+This bigram was based on instructions given by [Andrej Karpathy](https://en.wikipedia.org/wiki/Andrej_Karpathy) in the Youtube video called [_The spelled-out intro to language modeling: building makemore_]([https://www.youtube.com/watch?v=zduSFxRajkE](https://www.youtube.com/watch?v=PaCmpygFfXo)).
 
 ## Running
 To run this example you have to:
