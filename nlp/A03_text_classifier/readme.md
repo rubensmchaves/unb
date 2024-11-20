@@ -16,3 +16,4 @@ To train and test them we may use any of the _corpus_ available [here](https://g
 
 [Hyperparameter tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/) - GeeksforGeeks
 
+[Hyper-parameter tuning with Pipelines](https://medium.com/@kocur4d/hyper-parameter-tuning-with-pipelines-5310aff069d6) - Lukasz Skrzeszewski
