@@ -12,8 +12,12 @@ To train and test them we may use any of the _corpus_ available [here](https://g
 [Text Classification with Python: Build and Compare Three Text Classifiers](https://www.youtube.com/watch?v=eOu-h_XxjHQ) (@[Pythonology](https://www.youtube.com/@Pythonology)) - Vahid
 
 ### Text
-[Text Classification using Logistic Regression](https://www.geeksforgeeks.org/text-classification-using-logistic-regression/) - GeeksforGeeks
-
+#### Hyper-parameter tuning
 [Hyperparameter tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/) - GeeksforGeeks
 
 [Hyper-parameter tuning with Pipelines](https://medium.com/@kocur4d/hyper-parameter-tuning-with-pipelines-5310aff069d6) - Lukasz Skrzeszewski
+
+#### Classifiers
+[Multinomial Naive Bayes](https://www.geeksforgeeks.org/multinomial-naive-bayes/) - GeeksforGeeks
+
+[Text Classification using Logistic Regression](https://www.geeksforgeeks.org/text-classification-using-logistic-regression/) - GeeksforGeeks
