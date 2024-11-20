@@ -13,4 +13,6 @@ To train and test them we may use any of the _corpus_ available [here](https://g
 
 ### Text
 [Text Classification using Logistic Regression](https://www.geeksforgeeks.org/text-classification-using-logistic-regression/) - GeeksforGeeks
-[Hyperparameter tuning]()
+
+[Hyperparameter tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/) - GeeksforGeeks
+
