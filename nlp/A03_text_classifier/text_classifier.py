@@ -9,9 +9,9 @@ from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from A03_text_classifier.find_best_hyperparameters import fit_tuning
-from A03_text_classifier.find_best_hyperparameters import get_multinomial_naive_bayes_params
-from A03_text_classifier.find_best_hyperparameters import get_tfidf_params
+from find_best_hyperparameters import fit_tuning
+from find_best_hyperparameters import get_multinomial_naive_bayes_params
+from find_best_hyperparameters import get_tfidf_params
 
 
 
@@ -26,7 +26,7 @@ def read_dataset(dataset_filename_csv):
 # LR: 0.711
 # SVC: 0.844
 def classifiers():
-	df, X, y = read_dataset("corpus/CSTR.csv")
+	df, X, y = read_dataset("./CSTR.csv")
 
 	print("\nDataset content:")
 	print(df.head(5))
@@ -200,24 +200,25 @@ def pipeline_tuning():
 
 
 if __name__ == "__main__":
-	# classifiers()
+	classifiers()
 	# classifiers_tuning()
 	# pipeline_tuning()
-	df, X, y = read_dataset("corpus/CSTR.csv")
 
-	X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.3, random_state=1979)
+	# df, X, y = read_dataset("corpus/CSTR.csv")
 
-	pipeMNB = Pipeline([("tfidf", TfidfVectorizer()), ("clf", MultinomialNB())])
-	pipeLR  = Pipeline([("tfidf", TfidfVectorizer()), ("clf", LogisticRegression(random_state=1979))])
-	pipeSVC = Pipeline([("tfidf", TfidfVectorizer()), ("clf", LinearSVC())])
+	# X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.3, random_state=1979)
 
-	param = get_multinomial_naive_bayes_params("clf")
-	param.update(get_tfidf_params("tfidf"))
-	grid_search = fit_tuning(X_train, y_train, pipeMNB, param)
+	# pipeMNB = Pipeline([("tfidf", TfidfVectorizer()), ("clf", MultinomialNB())])
+	# pipeLR  = Pipeline([("tfidf", TfidfVectorizer()), ("clf", LogisticRegression(random_state=1979))])
+	# pipeSVC = Pipeline([("tfidf", TfidfVectorizer()), ("clf", LinearSVC())])
 
-	print("\nMNB best params:")
-	print("  Best Score: ", grid_search.best_score_)
-	print("  Best Params: ", grid_search.best_params_)
+	# param = get_multinomial_naive_bayes_params("clf")
+	# param.update(get_tfidf_params("tfidf"))
+	# grid_search = fit_tuning(X_train, y_train, pipeMNB, param)
 
-	print("\nCV Results:")
-	print(pd.DataFrame(grid_search.cv_results_))
+	# print("\nMNB best params:")
+	# print("  Best Score: ", grid_search.best_score_)
+	# print("  Best Params: ", grid_search.best_params_)
+
+	# print("\nCV Results:")
+	# print(pd.DataFrame(grid_search.cv_results_))
