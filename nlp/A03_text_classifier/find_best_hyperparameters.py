@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+
 
 from sklearn.model_selection import GridSearchCV
 
@@ -51,6 +53,14 @@ def fit_tuning(X_train, y_train, estimator, param_grid):
 	grid_search = GridSearchCV(estimator, param_grid, cv=3, scoring="f1_macro")
 	grid_search.fit(X_train, y_train)
 	return grid_search
+
+
+def read_dataset(dataset_filename_csv):
+	dataset = pd.read_csv(dataset_filename_csv)
+	X = dataset["text"]
+	y = dataset["class"]
+	return dataset, X, y
+
 
 
 
