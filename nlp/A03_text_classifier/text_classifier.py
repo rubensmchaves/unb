@@ -12,14 +12,8 @@ from sklearn.metrics import accuracy_score, classification_report
 from find_best_hyperparameters import fit_tuning
 from find_best_hyperparameters import get_multinomial_naive_bayes_params
 from find_best_hyperparameters import get_tfidf_params
+from find_best_hyperparameters import read_dataset
 
-
-
-def read_dataset(dataset_filename_csv):
-	dataset = pd.read_csv(dataset_filename_csv)
-	X = dataset["text"]
-	y = dataset["class"]
-	return dataset, X, y
 
 # Accuracy:
 # MNB: 0.611
