@@ -13,12 +13,36 @@ def create_prefix(prefix):
 
 
 def get_logistic_regression_params(prefix=None):
+    """
+    Generate hyperparameters for tuning a logistic regression model.
+    
+    Parameters:
+    - prefix (str, optional): A string to prepend to the parameter names for compatibility with pipelines. 
+                              Defaults to None.
+                              
+    Returns:
+    - dict: A dictionary containing the hyperparameter grid for logistic regression.
+            The parameter 'C' is sampled logarithmically over 15 values between 1e-5 and 1e8.
+    """
 	prefix = create_prefix(prefix)
 	param = {prefix + 'C': np.logspace(-5, 8, 15)} 
 	return param
 
 
 def get_support_vector_params(prefix=None):
+    """
+    Generate hyperparameters for tuning a support vector classifier.
+    
+    Parameters:
+    - prefix (str, optional): A string to prepend to the parameter names for compatibility with pipelines. 
+                              Defaults to None.
+                              
+    Returns:
+    - dict: A dictionary containing the hyperparameter grid for SVC.
+            Includes:
+            - 'class_weight': Options for None or "balanced".
+            - 'tol': Tolerance levels sampled logarithmically over 15 values between 1e-5 and 1e8.
+    """
 	prefix = create_prefix(prefix)
 	param  = {
 			prefix + "class_weight": [None, "balanced"], 
@@ -28,6 +52,20 @@ def get_support_vector_params(prefix=None):
 
 
 def get_multinomial_naive_bayes_params(prefix=None):
+    """
+    Generate hyperparameters for tuning a multinomial Naive Bayes model.
+    
+    Parameters:
+    - prefix (str, optional): A string to prepend to the parameter names for compatibility with pipelines. 
+                              Defaults to None.
+                              
+    Returns:
+    - dict: A dictionary containing the hyperparameter grid for multinomial Naive Bayes.
+            Includes:
+            - 'alpha': Range of smoothing parameters between 0.1 and 1.5 (10 evenly spaced values).
+            - 'fit_prior': Options for True or False.
+            - 'force_alpha': Options for True or False.
+    """
 	prefix = create_prefix(prefix)
 	param = {
 			prefix + 'alpha': np.linspace(0.1, 1.5, 10), 
@@ -38,7 +76,22 @@ def get_multinomial_naive_bayes_params(prefix=None):
 
 
 def get_tfidf_params(prefix=None):
-	prefix = create_prefix(prefix)
+    """
+    Generate hyperparameters for tuning a TF-IDF vectorizer.
+    
+    Parameters:
+    - prefix (str, optional): A string to prepend to the parameter names for compatibility with pipelines. 
+                              Defaults to None.
+                              
+    Returns:
+    - dict: A dictionary containing the hyperparameter grid for TF-IDF vectorization.
+            Includes:
+            - 'binary': Options for binary term frequency (True or False).
+            - 'lowercase': Options to convert text to lowercase (True or False).
+            - 'stop_words': Options for None or "english".
+            - 'ngram_range': Range of n-grams to extract (e.g., unigrams, bigrams, trigrams).
+    """
+ 	prefix = create_prefix(prefix)
 	param = {
 			prefix + "binary": [True, False], 
 			# prefix + "tfidf__norm": [None, 'l1', 'l2'], 
@@ -50,12 +103,36 @@ def get_tfidf_params(prefix=None):
 
 
 def fit_tuning(X_train, y_train, estimator, param_grid):
+    """
+    Perform hyperparameter tuning using GridSearchCV with 3-fold cross-validation.
+    
+    Parameters:
+    - X_train (pd.DataFrame or np.ndarray): Training feature set.
+    - y_train (pd.Series or np.ndarray): Training labels.
+    - estimator (sklearn estimator): Machine learning model to be tuned.
+    - param_grid (dict): Dictionary of hyperparameters to test.
+    
+    Returns:
+    - sklearn.model_selection.GridSearchCV: Fitted GridSearchCV object with the best parameters.
+    """
 	grid_search = GridSearchCV(estimator, param_grid, cv=3, scoring="f1_macro")
 	grid_search.fit(X_train, y_train)
 	return grid_search
 
 
 def read_dataset(dataset_filename_csv):
+    """
+    Load a dataset from a CSV file and extract features and labels.
+    
+    Parameters:
+    - dataset_filename_csv (str): Path to the CSV file containing the dataset.
+    
+    Returns:
+    - tuple: (pd.DataFrame, pd.Series, pd.Series)
+             - Full dataset as a DataFrame.
+             - Text features (X) as a Series.
+             - Labels (y) as a Series.
+    """
 	dataset = pd.read_csv(dataset_filename_csv)
 	X = dataset["text"]
 	y = dataset["class"]
