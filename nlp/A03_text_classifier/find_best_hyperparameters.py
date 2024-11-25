@@ -6,10 +6,10 @@ from sklearn.model_selection import GridSearchCV
 
 
 def create_prefix(prefix):
-	if prefix:
-		return prefix + "__"
-	else:
-		return ''
+    if prefix:
+        return prefix + "__"
+    else:
+        return ''
 
 
 def get_logistic_regression_params(prefix=None):
@@ -24,11 +24,11 @@ def get_logistic_regression_params(prefix=None):
     - dict: A dictionary containing the hyperparameter grid for logistic regression.
             The parameter 'C' is sampled logarithmically over 15 values between 1e-5 and 1e8.
     """
-	prefix = create_prefix(prefix)
-	param = {prefix + 'C': np.logspace(-5, 8, 15)} 
-	return param
-
-
+    prefix = create_prefix(prefix)
+    param = {prefix + 'C': np.logspace(-5, 8, 15)} 
+    return param
+    
+    
 def get_support_vector_params(prefix=None):
     """
     Generate hyperparameters for tuning a support vector classifier.
@@ -43,12 +43,12 @@ def get_support_vector_params(prefix=None):
             - 'class_weight': Options for None or "balanced".
             - 'tol': Tolerance levels sampled logarithmically over 15 values between 1e-5 and 1e8.
     """
-	prefix = create_prefix(prefix)
-	param  = {
-			prefix + "class_weight": [None, "balanced"], 
-			prefix + "tol": np.logspace(-5, 8, 15)
-		} 
-	return param
+    prefix = create_prefix(prefix)
+    param  = {
+            prefix + "class_weight": [None, "balanced"], 
+            prefix + "tol": np.logspace(-5, 8, 15)
+        } 
+    return param
 
 
 def get_multinomial_naive_bayes_params(prefix=None):
@@ -66,13 +66,13 @@ def get_multinomial_naive_bayes_params(prefix=None):
             - 'fit_prior': Options for True or False.
             - 'force_alpha': Options for True or False.
     """
-	prefix = create_prefix(prefix)
-	param = {
-			prefix + 'alpha': np.linspace(0.1, 1.5, 10), 
-			prefix + 'fit_prior': [True, False], 
-			prefix + 'force_alpha': [True, False]
-		}
-	return param
+    prefix = create_prefix(prefix)
+    param = {
+            prefix + 'alpha': np.linspace(0.1, 1.5, 10), 
+            prefix + 'fit_prior': [True, False], 
+            prefix + 'force_alpha': [True, False]
+        }
+    return param
 
 
 def get_tfidf_params(prefix=None):
@@ -91,15 +91,15 @@ def get_tfidf_params(prefix=None):
             - 'stop_words': Options for None or "english".
             - 'ngram_range': Range of n-grams to extract (e.g., unigrams, bigrams, trigrams).
     """
- 	prefix = create_prefix(prefix)
-	param = {
-			prefix + "binary": [True, False], 
-			# prefix + "tfidf__norm": [None, 'l1', 'l2'], 
-			prefix + "lowercase": [True, False], 
-			prefix + "stop_words": [None, "english"],
-			prefix + "ngram_range": [(1,1), (2,2), (3,3)]
-		}
-	return param
+    prefix = create_prefix(prefix)
+    param = {
+            prefix + "binary": [True, False], 
+            # prefix + "tfidf__norm": [None, 'l1', 'l2'], 
+            prefix + "lowercase": [True, False], 
+            prefix + "stop_words": [None, "english"],
+            prefix + "ngram_range": [(1,1), (2,2), (3,3)]
+        }
+    return param
 
 
 def fit_tuning(X_train, y_train, estimator, param_grid):
@@ -115,9 +115,9 @@ def fit_tuning(X_train, y_train, estimator, param_grid):
     Returns:
     - sklearn.model_selection.GridSearchCV: Fitted GridSearchCV object with the best parameters.
     """
-	grid_search = GridSearchCV(estimator, param_grid, cv=3, scoring="f1_macro")
-	grid_search.fit(X_train, y_train)
-	return grid_search
+    grid_search = GridSearchCV(estimator, param_grid, cv=3, scoring="f1_macro")
+    grid_search.fit(X_train, y_train)
+    return grid_search
 
 
 def read_dataset(dataset_filename_csv):
@@ -133,18 +133,18 @@ def read_dataset(dataset_filename_csv):
              - Text features (X) as a Series.
              - Labels (y) as a Series.
     """
-	dataset = pd.read_csv(dataset_filename_csv)
-	X = dataset["text"]
-	y = dataset["class"]
-	return dataset, X, y
+    dataset = pd.read_csv(dataset_filename_csv)
+    X = dataset["text"]
+    y = dataset["class"]
+    return dataset, X, y
 
 
 
 
 if __name__ == "__main__":
-	print("SVC parameters:")
-	print(get_support_vector_params())
+    print("SVC parameters:")
+    print(get_support_vector_params())
 
 
-	print("TF-IDF parameters:")
-	print(get_tfidf_params("tfidf"))	
+    print("TF-IDF parameters:")
+    print(get_tfidf_params("tfidf"))    
