@@ -46,7 +46,8 @@ def get_logistic_regression_params(prefix=None):
             'lr__class_weight': [None, 'balanced'],
             'lr__max_iter': [100, 200, 500]
         }
-    """    prefix = create_prefix(prefix)
+    """    
+    prefix = create_prefix(prefix)
     param = {
         prefix + 'C': np.logspace(-5, 8, 10),  # Refine range of regularization
         prefix + 'solver': ['liblinear', 'lbfgs'],
