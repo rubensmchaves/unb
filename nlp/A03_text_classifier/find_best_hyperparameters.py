@@ -14,18 +14,47 @@ def create_prefix(prefix):
 
 def get_logistic_regression_params(prefix=None):
     """
-    Generate hyperparameters for tuning a logistic regression model.
-    
-    Parameters:
-    - prefix (str, optional): A string to prepend to the parameter names for compatibility with pipelines. 
-                              Defaults to None.
-                              
+    Generate hyperparameter options for tuning a Logistic Regression model.
+
+    This function creates a dictionary of hyperparameters that can be used 
+    for fine-tuning a Logistic Regression model during grid search or other
+    hyperparameter optimization methods. The parameter names can be prefixed 
+    to allow compatibility with pipelines or other naming conventions.
+
+    Args:
+        prefix (str, optional): A string to be prefixed to the parameter names. 
+                                Defaults to None.
+
     Returns:
-    - dict: A dictionary containing the hyperparameter grid for logistic regression.
-            The parameter 'C' is sampled logarithmically over 15 values between 1e-5 and 1e8.
-    """
-    prefix = create_prefix(prefix)
-    param = {prefix + 'C': np.logspace(-5, 8, 15)} 
+        dict: A dictionary containing hyperparameter options for Logistic Regression.
+              The keys are parameter names (optionally prefixed), and the values are 
+              the corresponding ranges or options.
+              
+              - 'C': Regularization strength, with values on a logarithmic scale 
+                between 10^-5 and 10^8.
+              - 'solver': Solvers used in the optimization process, such as 'liblinear' 
+                and 'lbfgs'.
+              - 'class_weight': Specifies class balancing options, either None or 'balanced'.
+              - 'max_iter': Maximum number of iterations for the solver, with values 
+                100, 200, and 500.
+
+    Example:
+        >>> get_logistic_regression_params(prefix="lr__")
+        {
+            'lr__C': array([1.00000000e-05, ..., 1.00000000e+08]),
+            'lr__solver': ['liblinear', 'lbfgs'],
+            'lr__class_weight': [None, 'balanced'],
+            'lr__max_iter': [100, 200, 500]
+        }
+    """    prefix = create_prefix(prefix)
+    param = {
+        prefix + 'C': np.logspace(-5, 8, 10),  # Refine range of regularization
+        prefix + 'solver': ['liblinear', 'lbfgs'],
+        prefix + 'class_weight': [None, 'balanced'],
+        prefix + 'max_iter': [100, 200, 500]
+        # prefix + 'penalty': ['l2'],
+        # prefix + 'tol': np.logspace(-4, -1, 4)
+    }    
     return param
     
     
@@ -147,4 +176,6 @@ if __name__ == "__main__":
 
 
     print("TF-IDF parameters:")
-    print(get_tfidf_params("tfidf"))    
+    print(get_tfidf_params("tfidf"))   
+
+    print(np.linspace(100, 1000, 3)) 
