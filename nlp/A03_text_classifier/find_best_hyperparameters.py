@@ -169,12 +169,30 @@ def read_dataset(dataset_filename_csv):
     return dataset, X, y
 
 
+def show_score_params(grid_search):
+    print("\nSVC best params:")
+    print(f"  Best Score: {grid_search.best_score_}")
+    print(f"  Best Params: {grid_search.best_params_}")
+
+
+def results_to_csv(grid_search, filename, verbose=False):
+    print("\nCV Results:", verbose)
+    df_SVC = pd.DataFrame(grid_search.cv_results_)
+    df_SVC = df_SVC.sort_values(by="mean_test_score", ascending=False)
+    print(df_SVC, verbose)
+    # Save dataframe into CSV file
+    df_SVC.to_csv(filename)
+
+
+def score_test_set(grid_search, X, y):
+    print("\nTest evaluation:")
+    f1_macro = grid_search.score(X, y)
+    print(f"  F1-macro: {f1_macro}")    
 
 
 if __name__ == "__main__":
     print("SVC parameters:")
     print(get_support_vector_params())
-
 
     print("TF-IDF parameters:")
     print(get_tfidf_params("tfidf"))   
