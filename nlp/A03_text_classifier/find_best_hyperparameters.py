@@ -170,12 +170,42 @@ def read_dataset(dataset_filename_csv):
 
 
 def show_score_params(grid_search):
+    """
+    Display the best parameters and score from a GridSearchCV object.
+
+    Parameters
+    ----------
+    grid_search : GridSearchCV
+        The fitted GridSearchCV object containing the results of the hyperparameter search.
+
+    Returns
+    -------
+    None
+        Prints the best score and parameters to the console.
+    """
     print("\nSVC best params:")
     print(f"  Best Score: {grid_search.best_score_}")
     print(f"  Best Params: {grid_search.best_params_}")
 
 
 def results_to_csv(grid_search, filename, verbose=False):
+    """
+    Save the cross-validation results of a GridSearchCV object to a CSV file.
+
+    Parameters
+    ----------
+    grid_search : GridSearchCV
+        The fitted GridSearchCV object containing the cross-validation results.
+    filename : str
+        The path to the CSV file where the results should be saved.
+    verbose : bool, optional
+        If True, prints the cross-validation results to the console before saving. Default is False.
+
+    Returns
+    -------
+    None
+        Saves the sorted cross-validation results to a CSV file.
+    """    
     print("\nCV Results:", verbose)
     df_SVC = pd.DataFrame(grid_search.cv_results_)
     df_SVC = df_SVC.sort_values(by="mean_test_score", ascending=False)
@@ -185,6 +215,23 @@ def results_to_csv(grid_search, filename, verbose=False):
 
 
 def score_test_set(grid_search, X, y):
+    """
+    Evaluate the performance of the best model from a GridSearchCV object on a test set.
+
+    Parameters
+    ----------
+    grid_search : GridSearchCV
+        The fitted GridSearchCV object containing the best model.
+    X : array-like of shape (n_samples, n_features)
+        The feature set for the test data.
+    y : array-like of shape (n_samples,)
+        The true labels for the test data.
+
+    Returns
+    -------
+    None
+        Prints the F1-macro score of the best model on the test data.
+    """    
     print("\nTest evaluation:")
     f1_macro = grid_search.score(X, y)
     print(f"  F1-macro: {f1_macro}")    
