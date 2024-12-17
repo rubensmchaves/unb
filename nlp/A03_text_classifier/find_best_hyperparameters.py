@@ -229,7 +229,6 @@ def validate(estimator, X_test, y_test):
         - F1-score (macro-averaged)
         - F1-score (micro-averaged)
     """
-    print("\nTest validation:")
     predicted = estimator.predict(X_test)
     accuracy = accuracy_score(y_test, predicted)
     f1_macro = f1_score(y_test, predicted, average='macro')

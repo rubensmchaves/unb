@@ -21,7 +21,7 @@ from find_best_hyperparameters import validate
 
 
 if __name__ == "__main__":
-    corpus_filename = "NSF"
+    corpus_filename = "Dmoz-Science"
 
     df, X, y = read_dataset(f"./data/{corpus_filename}.csv")
     print("\nDataset content:")
