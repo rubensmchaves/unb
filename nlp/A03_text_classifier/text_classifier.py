@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 from find_best_hyperparameters import fit_tuning
 from find_best_hyperparameters import get_multinomial_naive_bayes_params
@@ -17,13 +17,13 @@ from find_best_hyperparameters import get_tfidf_params
 from find_best_hyperparameters import read_dataset
 from find_best_hyperparameters import show_score_params
 from find_best_hyperparameters import results_to_csv
-from find_best_hyperparameters import score_test_set
+from find_best_hyperparameters import validate
 
 
 if __name__ == "__main__":
-    corpus_filename = "Dmoz-Science"
+    corpus_filename = "NSF"
 
-    df, X, y = read_dataset("./" + corpus_filename + ".csv")
+    df, X, y = read_dataset(f"./data/{corpus_filename}.csv")
     print("\nDataset content:")
     print(df.head(5))
 
@@ -52,17 +52,35 @@ if __name__ == "__main__":
 # Multinomial Naive Bayes
     grid_search_MNB = fit_tuning(X_train, y_train, pipeMNB, paramMNB)
     show_score_params(grid_search_MNB)
-    results_to_csv(grid_search_MNB, corpus_filename + "-mnb-results.csv")
-    score_test_set(grid_search_MNB, X_test, y_test)
+    results_to_csv(grid_search_MNB, f"./results/{corpus_filename}-mnb-results.csv")
+    estimator = grid_search_MNB.best_estimator_
+    print(estimator)
+    estimator.fit(X_train, y_train)
+    mnb_metrics = validate(estimator, X_test, y_test)
 
 # Logistic Regression
     grid_search_LR = fit_tuning(X_train, y_train, pipeLR, paramLR)
     show_score_params(grid_search_LR)
-    results_to_csv(grid_search_LR, corpus_filename + "-lr-results.csv")
-    score_test_set(grid_search_LR, X_test, y_test)
+    results_to_csv(grid_search_LR,  f"./results/{corpus_filename}-lr-results.csv")
+    estimator = grid_search_LR.best_estimator_
+    print(estimator)
+    estimator.fit(X_train, y_train)
+    lr_metrics = validate(estimator, X_test, y_test)
 
 # Support Vector Machine
     grid_search_SVC = fit_tuning(X_train, y_train, pipeSVC, paramSVC)
     show_score_params(grid_search_SVC)
-    results_to_csv(grid_search_SVC, corpus_filename + "-svc-results.csv")
-    score_test_set(grid_search_SVC, X_test, y_test)
+    results_to_csv(grid_search_SVC,  f"./results/{corpus_filename}-svc-results.csv")
+    estimator = grid_search_SVC.best_estimator_
+    print(estimator)
+    estimator.fit(X_train, y_train)
+    svc_metrics = validate(estimator, X_test, y_test)
+
+# Print all resulted metrics from validation
+    results = { 
+        "Metrics": ["Accuracy", "F1 macro", "F1 micro"],        
+        "MNB": mnb_metrics,
+        "LR": lr_metrics,
+        "SVC": svc_metrics
+    }
+    print(pd.DataFrame(results))

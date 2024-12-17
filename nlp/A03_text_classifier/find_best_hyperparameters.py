@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import GridSearchCV
 
 
@@ -214,27 +214,28 @@ def results_to_csv(grid_search, filename, verbose=False):
     df_SVC.to_csv(filename)
 
 
-def score_test_set(grid_search, X, y):
+def validate(estimator, X_test, y_test):
     """
-    Evaluate the performance of the best model from a GridSearchCV object on a test set.
+    Validate a trained estimator using the test dataset.
 
-    Parameters
-    ----------
-    grid_search : GridSearchCV
-        The fitted GridSearchCV object containing the best model.
-    X : array-like of shape (n_samples, n_features)
-        The feature set for the test data.
-    y : array-like of shape (n_samples,)
-        The true labels for the test data.
+    Parameters:
+    estimator (object): The trained model implementing a `predict` method.
+    X_test (array-like): Test feature dataset.
+    y_test (array-like): True labels for the test dataset.
 
-    Returns
-    -------
-    None
-        Prints the F1-macro score of the best model on the test data.
-    """    
-    print("\nTest evaluation:")
-    f1_macro = grid_search.score(X, y)
-    print(f"  F1-macro: {f1_macro}")    
+    Returns:
+    list: A list containing the following metrics:
+        - Accuracy score
+        - F1-score (macro-averaged)
+        - F1-score (micro-averaged)
+    """
+    print("\nTest validation:")
+    predicted = estimator.predict(X_test)
+    accuracy = accuracy_score(y_test, predicted)
+    f1_macro = f1_score(y_test, predicted, average='macro')
+    f1_micro = f1_score(y_test, predicted, average='micro') 
+    metrics = [accuracy, f1_macro, f1_micro]
+    return metrics
 
 
 if __name__ == "__main__":
