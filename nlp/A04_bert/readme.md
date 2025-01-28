@@ -32,4 +32,4 @@ To train and test them we may use any of the _corpus_ available [here](https://g
 
 [HuggingFace: NLP Course](https://huggingface.co/learn/nlp-course/en/chapter0/1?fw=pt)
 
-[HuggingFace (docs): Transformers](https://huggingface.co/docs/transformers/index)
+[HuggingFace (docs): Transformers](https://huggingface.co/docs/transformers/index) ([text classification](https://huggingface.co/docs/transformers/tasks/sequence_classification))
