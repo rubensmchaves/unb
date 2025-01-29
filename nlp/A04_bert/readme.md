@@ -34,4 +34,6 @@ To train and test them we may use any of the _corpus_ available [here](https://g
 
 [HuggingFace: NLP Course](https://huggingface.co/learn/nlp-course/en/chapter0/1?fw=pt)
 
+[How to Finetune BERT for Text Classification (HuggingFace Transformers, Tensorflow 2.0) on a Custom Dataset](https://victordibia.com/blog/text-classification-hf-tf2/)
+
 [HuggingFace (docs): Transformers](https://huggingface.co/docs/transformers/index) ([text classification](https://huggingface.co/docs/transformers/tasks/sequence_classification))
