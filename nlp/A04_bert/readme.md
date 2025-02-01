@@ -2,11 +2,16 @@ This is the fourth assingment of the NLP course at UnB. The idea is to implement
 
 To train and test them we may use any of the _corpus_ available [here](https://github.com/ragero/text-collections/tree/master/complete_texts_csvs).
 
-# Running
+# Setting up
 
 ## Virtual Environment
 
 To run the project is necessary to create a virtual enviroment to avoid libraries conflits. So, we created a virtual environment using `venv` because it comes with Python 3.4+. For more information about it click [here](https://python.land/virtual-environments/virtualenv).
+
+After start the virtual environment it is important to install the required libraries, try this (for more [here](https://www.geeksforgeeks.org/install-packages-using-pip-with-requirements-txt-file-in-python/)): 
+```bash
+   pip install -r requirements.txt
+```
 
 ## References
 
