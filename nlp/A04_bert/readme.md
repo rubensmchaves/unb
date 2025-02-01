@@ -10,7 +10,7 @@ To run the project is necessary to create a virtual enviroment to avoid librarie
 
 After start the virtual environment it is important to install the required libraries, try this (for more [here](https://www.geeksforgeeks.org/install-packages-using-pip-with-requirements-txt-file-in-python/)): 
 ```bash
-   pip install -r requirements.txt
+   py -m pip install -r requirements.txt
 ```
 
 ## References
