@@ -2,6 +2,12 @@ This is the fourth assingment of the NLP course at UnB. The idea is to implement
 
 To train and test them we may use any of the _corpus_ available [here](https://github.com/ragero/text-collections/tree/master/complete_texts_csvs).
 
+# Running
+
+## Virtual Environment
+
+To run the project is necessary to create a virtual enviroment to avoid libraries conflits. So, we created a virtual environment using `venv` because it comes with Python 3.4+. For more information about it click [here](https://python.land/virtual-environments/virtualenv).
+
 ## References
 
 ### Video
