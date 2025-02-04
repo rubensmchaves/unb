@@ -1,6 +1,6 @@
 This is the fourth assignment of the NLP course at UnB, fully described [here](https://github.com/thiagodepaulo/nlp/blob/main/aula_10/exercicio10.md). The objective is to implement a notebook for text classification using BERT (Bidirectional Encoder Representations from Transformers) with the same _corpus_ from the previous assignment ([A03_text_classification](https://github.com/rubensmchaves/unb/tree/main/nlp/A03_text_classifier)).
 
-To train and test them we may use any of the _corpus_ available [here](https://github.com/ragero/text-collections/tree/master/complete_texts_csvs).
+To train and test them we may use any of the _corpus_ available [here](https://github.com/ragero/text-collections/tree/master/complete_texts_csvs) (`Dmoz-Science.csv` and `NSF.csv`).
 
 ## References
 
