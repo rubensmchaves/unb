@@ -2,29 +2,6 @@ This is the fourth assignment of the NLP course at UnB, fully described [here](h
 
 To train and test them we may use any of the _corpus_ available [here](https://github.com/ragero/text-collections/tree/master/complete_texts_csvs).
 
-# Setting up
-
-## Virtual Environment
-
-To run the project is necessary to create a virtual enviroment to avoid libraries conflits. So, we created a virtual environment using `venv` because it comes with Python 3.4+. For more information about it click [here](https://python.land/virtual-environments/virtualenv).
-
-Initialize the local environment in the local folder `venv`:
-```bash
-   py -m venv venv
-```
-
-Start the local environment (windows):
-```bash
-   .\venv\Scripts\activate.bat
-```
-
-After start the virtual environment it is important to install the required libraries, try this (for more [here](https://www.geeksforgeeks.org/install-packages-using-pip-with-requirements-txt-file-in-python/)): 
-```bash
-   py -m pip install -r requirements.txt
-```
-
-The last step is to create a `data` folder and copy the datasets (Dmoz-Science.csv and NSF.csv) into it. The datasets are the same used in activity 3 ([here](https://github.com/rubensmchaves/unb/tree/main/nlp/A03_text_classifier/data)). 
-
 ## References
 
 ### Video
