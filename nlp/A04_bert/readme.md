@@ -23,6 +23,8 @@ After start the virtual environment it is important to install the required libr
    py -m pip install -r requirements.txt
 ```
 
+The last step is to create a `data` folder and copy the datasets (Dmoz-Science.csv and NSF.csv) into it. The datasets are the same used in activity 3 ([here](https://github.com/rubensmchaves/unb/tree/main/nlp/A03_text_classifier/data)). 
+
 ## References
 
 ### Video
