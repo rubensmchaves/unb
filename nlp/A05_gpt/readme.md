@@ -4,7 +4,7 @@ To achieve this, we will use the Chapter 5 of the book [LLMs from Scratch](https
 
 On this activity we have used:
 * [Python Virtual Environment](https://www.geeksforgeeks.org/python-virtual-environment/)
-* A requirements.txt file to organize the dependencies ([how to...](https://www.geeksforgeeks.org/how-to-create-requirements-txt-file-in-python/))
+* A `requirements.txt` file to organize the dependencies ([how to...](https://www.geeksforgeeks.org/how-to-create-requirements-txt-file-in-python/))
 
 ## References
 
