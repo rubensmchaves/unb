@@ -10,6 +10,7 @@ On this activity we have used:
 
 ### Video
 [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) - Andrej Karpathy
+
 [Deep Dive into LLMs like ChatGPT](https://www.youtube.com/watch?v=7xTGNNLPyMI) - Andrej Karpathy
 
 ### Text
