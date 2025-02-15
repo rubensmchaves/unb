@@ -1,4 +1,4 @@
-This is the fifth assignment of the NLP course at UnB, fully described [here]([https://github.com/thiagodepaulo/nlp/blob/main/aula_10/exercicio10.md](https://github.com/thiagodepaulo/nlp/blob/main/aula_11/exercicio11.md). 
+This is the fifth assignment of the NLP course at UnB, fully described [here](https://github.com/thiagodepaulo/nlp/blob/main/aula_11/exercicio11.md). 
 The objective is to implement a notebook for text generation using GPT with loaded weights from GPT2. 
 To achieve this, we will use the Chapter 5 of the book [LLMs from Scratch](https://github.com/rasbt/LLMs-from-scratch/tree/main).
 
